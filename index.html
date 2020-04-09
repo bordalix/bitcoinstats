@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Primary Meta Tags -->
+    <title>Bitcoin stats</title>
+    <meta name="title" content="Bitcoin stats">
+    <meta name="description" content="Bitcoin stats">
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://bitcoinstats.ga/">
+    <meta property="og:title" content="Bitcoin stats">
+    <meta property="og:description" content="Bitcoin stats">
+    <meta property="og:image" content="https://bitcoinstats.ga/images/bitcoinstats.png">
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://bitcoinstats.ga/">
+    <meta property="twitter:title" content="Bitcoin stats">
+    <meta property="twitter:description" content="Bitcoin stats">
+    <meta property="twitter:image" content="https://bitcoinstats.ga/images/bitcoinstats.png">
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="images/favicon.png" type="image/x-icon">
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/bulma.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <!-- Javascript -->
+    <script src="scripts/jquery-3.1.1.min.js"></script>
+    <script defer src="scripts/fontawesome.js"></script>
+    <script defer src="scripts/tips.js"></script>
+  </head>
+  <body class="has-background-light">
+    <div id="mempool-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Mempool size</p>
+          <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+          <p>via <a href="https://blockchain.info/charts">https://blockchain.info/charts</a></p>
+          <img src="https://api.blockchain.info/charts/thumbnail/mempool-size.png">
+        </section>
+      </div>
+    </div>
+    <div id="transactions-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Daily transactions</p>
+          <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+          <p>via <a href="https://blockchain.info/charts">https://blockchain.info/charts</a></p>
+          <img src="https://api.blockchain.info/charts/thumbnail/n-transactions-per-block.png">
+        </section>
+      </div>
+    </div>
+    <div id="difficulty-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Difficulty</p>
+          <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+          <p>via <a href="https://blockchain.info/charts">https://blockchain.info/charts</a></p>
+          <img src="https://api.blockchain.info/charts/thumbnail/difficulty.png">
+        </section>
+      </div>
+    </div>
+    <div id="hashrate-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Hash rate</p>
+          <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+          <p>via <a href="https://blockchain.info/charts">https://blockchain.info/charts</a></p>
+          <img src="https://api.blockchain.info/charts/thumbnail/hash-rate.png">
+        </section>
+      </div>
+    </div>
+    <div id="CVE-2013-3220-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">CVE-2013-3220</p>
+          <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+          <p>The Berkeley DB locks incident</p>
+          <dl>
+            <dt>From</dt>
+            <dd>Mar 11, 2013 11:24:19 PM</dd>
+            <dt>Until</dt>
+            <dd>Mar 12, 2013 6:19:32 AM</dd>
+            <dt>Downtime</dt>
+            <dd>6 hours and 55 minutes</dd>
+            <dt>Blocks</dt>
+            <dd>
+              <a href="https://blockexplorer.com/block/00000000000001c108384350f74090433e7fcf79a606b8e797f065b130575932">225430</a>
+              to
+              <a href="https://blockexplorer.com/block/00000000000001976860e9e35b20b8ebe22c35f813a40962c25ead9fbd89510b">225454</a>
+            </dd>
+            <dt>Discussion</dt>
+            <dd>
+              <a href="https://github.com/bitcoin/bips/blob/master/bip-0050.mediawiki">https://github.com/bitcoin/bips/blob/master/bip-0050.mediawiki</a>
+            </dd>
+            <dt>Media</dt>
+            <dd>
+              <a href="https://bitcoinmagazine.com/articles/bitcoin-network-shaken-by-blockchain-fork-1363144448/">https://bitcoinmagazine.com/articles/bitcoin-network-shaken-by-blockchain-fork-1363144448/</a>
+            </dd>
+          </dl>
+        </section>
+      </div>
+    </div>
+    <div id="CVE-2010-5139-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">CVE-2010-5139</p>
+          <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+          <p>The value overflow incident</p>
+          <dl>
+            <dt>From</dt>
+            <dd>Aug 16, 2010 12:53:59 AM</dd>
+            <dt>Until</dt>
+            <dd>Aug 16, 2010 9:20:08 PM</dd>
+            <dt>Downtime</dt>
+            <dd>8 hours and 27 minutes</dd>
+            <dt>Blocks</dt>
+            <dd>
+              <a href="https://blockexplorer.com/block/000000000069e1affe7161ab4bcbeacebb4ddf155b50e807f42de971b688a09b">74638</a>
+              to
+              <a href="https://blockexplorer.com/block/00000000005c22d199706df1c38b38d76f8401920dcbe91edf3417f8847da707">74691</a>
+            </dd>
+            <dt>Discussion</dt>
+            <dd>
+              <a href="https://en.bitcoin.it/wiki/Value_overflow_incident">https://en.bitcoin.it/wiki/Value_overflow_incident</a>
+            </dd>
+            <dt>Media</dt>
+            <dd>
+              <a href="https://bitcoinmagazine.com/articles/bitcoin-network-shaken-by-blockchain-fork-1363144448/">https://bitcoinmagazine.com/articles/bitcoin-network-shaken-by-blockchain-fork-1363144448/</a>
+            </dd>
+          </dl>
+        </section>
+      </div>
+    </div>
+    <div id="halving-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Next halving</p>
+          <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+          <p>Using 2 month block time average</p>
+          <dl>
+            <dt>Latest block (a)</dt>
+            <dd id="latest-height"></dd>
+            <dt>Timestamp (b)</dt>
+            <dd id="latest-timestamp"></dd>
+            <dt>Time ago</dt>
+            <dd id="latest-time-ago"></dd>
+            <dt>Distance (c)</dt>
+            <dd>8640 blocks (~2 months)</dd>
+            <dt>From block</dt>
+            <dd id="from-height"></dd>
+            <dt>Timestamp (d)</dt>
+            <dd id="from-timestamp"></dd>
+            <dt>Avg p/ block (e)</dt>
+            <dd id="average-time"></dd>
+            <dt>To halving (f)</dt>
+            <dd id="halving-blocks"></dd>
+            <dt>Timestamp</dt>
+            <dd id="halving-timestamp"></dd>
+          </dl>
+        </section>
+      </div>
+    </div>
+    <section class="section has-text-centered">
+      <div class="container">
+        <h1 class="title">Bitcoin stats</h1>
+        <div class="tile is-ancestor is-vertical">
+          <div class="tile">
+            <div class="tile is-parent is-vertical">
+              <article class="tile is-child box">
+                <h2>Market price USD</h2>
+                <p id="market_price_usd"></p>
+                <noscript><span class="tag is-dark">Enable javascript</span></noscript>
+                <p><a href="https://trade.kraken.com/markets/kraken/btc/usd/1h">Live on Kraken</a></p>
+              </article>
+              <article class="tile is-child box">
+                <h2>Next halving</h2>
+                <p id="countdown-container" style="visibility:hidden"></p>
+                <noscript><span class="tag is-dark">Enable javascript</span></noscript>
+                <p id="halving-container">ETA Thu May 14 2020</p>
+                <p>&nbsp;</p>
+                <p>Using 2 month average</p>
+                <p id="halving" style="visibility:none">
+                  <a id="halving-show">Know more</a>
+                </p>
+              </article>
+              <article class="tile is-child box">
+                <h2>Network uptime</h2>
+                <p id="uptime-container">99.984 %</p>
+                <p>Since Sat Jan 3 2009</p>
+                <h3>Downtime events</h3>
+                <p>
+                  <a id="CVE-2010-5139">Mon Aug 16 2010</a><br />
+                  <a id="CVE-2013-3220">Mon Mar 11 2013</a>
+                </p>
+              </article>
+            </div>
+            <div class="tile is-parent is-vertical">
+              <article class="tile is-child box">
+                <h2>Hash rate</h2>
+                <p id="hash_rate"></p>
+                <noscript><span class="tag is-dark">Enable javascript</span></noscript>
+                <p><a id="hashrate-show" href="https://api.blockchain.info/charts/thumbnail/hash-rate.png">See graph</a></p>
+              </article>
+              <article class="tile is-child box">
+                <h2>Difficulty</h2>
+                <p id="difficulty"></p>
+                <noscript><span class="tag is-dark">Enable javascript</span></noscript>
+                <p><a id="difficulty-show" href="https://api.blockchain.info/charts/thumbnail/difficulty.png">See graph</a></p>
+              </article>
+              <article class="tile is-child box">
+                <h2>Next retarget</h2>
+                <p id="nextretarget"></p>
+                <noscript><span class="tag is-dark">Enable javascript</span></noscript>
+                <p id="nextretarget-eta"></p>
+              </article>
+              <article class="tile is-child box">
+                <h2>Bitcoins mined</h2>
+                <p id="totalbc"></p>
+                <noscript><span class="tag is-dark">Enable javascript</span></noscript>
+                <p>of 21 million</p>
+              </article>
+            </div>
+            <div class="tile is-parent is-vertical">
+              <article class="tile is-child box">
+                <h2>Daily transactions</h2>
+                <p id="transactions"></p>
+                <noscript><span class="tag is-dark">Enable javascript</span></noscript>
+                <p><a id="transactions-show" href="https://api.blockchain.info/charts/thumbnail/n-transactions-per-block.png">See graph</a></p>
+              </article>
+              <article class="tile is-child box">
+                <h2>Mempool size</h2>
+                <p id="mempool"></p>
+                <noscript><span class="tag is-dark">Enable javascript</span></noscript>
+                <p><a id="mempool-show" href="https://api.blockchain.info/charts/thumbnail/mempool-size.png">See graph</a></p>
+              </article>
+              <article class="tile is-child box">
+                <h2>Block size</h2>
+                <p id="block_size"></p>
+                <noscript><span class="tag is-dark">Enable javascript</span></noscript>
+                <p>Average last 24 hours</p>
+              </article>
+              <article class="tile is-child box">
+                <h2>Total blocks</h2>
+                <p id="n_blocks_total"></p>
+                <noscript><span class="tag is-dark">Enable javascript</span></noscript>
+                <p><a id="last_block">Last block</a></p>
+              </article>
+            </div>
+          </div>
+          <div class="tile">
+            <div class="tile is-parent">
+              <article id="svg-container" class="tile is-child box">
+                <h2>Latest blocks</h2>
+                <noscript><span class="tag is-dark">Enable javascript</span></noscript>
+                <svg id="lastBlocksSVG" viewbox="0 0 1300 320"></svg>
+              </article>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <footer class="footer has-background-light">
+      <div class="content has-text-centered">
+        <p>
+          <strong>Bitcoin stats</strong>
+          by <a href="https://joaobordalo.com">João Bordalo</a>.
+          No rights reserved.
+        </p>
+        <p>
+          <span class="icon">
+            <i class="fab fa-bitcoin"></i>
+          </span>
+          3J8QGWo5Qjpz5X9kQYK7VnD2p3aXKtTgfM
+        </p>
+        <p>
+          <span class="icon">
+            <i class="fab fa-github"></i>
+          </span>
+          <a href="https://github.com/bordalix/bitcoinstats">https://github.com/bordalix/bitcoinstats</a>
+        </p>
+        <div id="tippin-button" style="margin: 0 auto" data-dest="bordalix" class="button-filled">
+          <!-- this <a> tag just for it to work without javascript -->
+          <a href="https://tippin.me/@bordalix" style="color:#fff;">⚡️ tippin.me</a>
+        </div>
+      </div>
+    </footer>
+    <script>
+      // app state
+      const blocks = {
+        halving: {
+          height: 630000,
+          timestamp: null,
+        },
+        latest: {
+          height: null,
+          timestamp: null,
+        },
+        sixty_days: {
+          height: null,
+          timestamp: null,
+        },
+        misc: {
+          avg_time_block: null,
+        }
+      };
+      function shortDate(timestamp) {
+        const date = new Date(timestamp * 1000);
+        return date.toString().split(/\s\d\d:/)[0];
+      }
+      // use btc.com api to calculate next halving
+      function getHalving() {
+        // how many blocks to calculate average (2 months)
+        const distance = 6 * 24 * 60;
+        function time2timestamp(time) {
+          return Math.round(Date.parse(time) / 1000);
+        }
+        // format time since last block
+        function displayTimeAgo() {
+          const now = new Date().getTime() / 1000;
+          let seconds = parseInt(now - blocks.latest.timestamp);
+          const minutes = Math.floor(seconds / 60);
+          seconds -= minutes * 60;
+          const time_ago = minutes + 'm ' + seconds + 's';
+          const latest_time_ago = document.getElementById('latest-time-ago');
+          latest_time_ago.innerHTML = time_ago;
+        }
+        // display countdown
+        function displayCountdown() {
+          const now = new Date().getTime() / 1000;
+          let seconds = parseInt(blocks.halving.timestamp - now);
+          const minute = 60;
+          const hour = 60 * minute;
+          const day = 24 * hour;
+          const days = Math.floor(seconds / day);
+          seconds -= days * day;
+          const hours = Math.floor(seconds / hour);
+          seconds -= hours * hour;
+          const minutes = Math.floor(seconds / minute);
+          seconds -= minutes * minute;
+          const countdown = days + 'd ' + hours + 'h ' + minutes + 'm ' + seconds + 's';
+          const countdown_container = document.getElementById('countdown-container');
+          countdown_container.innerHTML = countdown;
+        }
+        // return api url for a given block
+        function apiURL(block) {
+          let url = 'https://api.blockcypher.com/v1/btc/main';
+          if (block === 'sixty_days') url += '/blocks/' + blocks.sixty_days.height;
+          return url + '?token=fb06f2f1e0274544a5528640b2422f7f';
+        }
+        // fetch latest block
+        fetch(apiURL('latest'))
+          .then(function(response) {
+            return response.json();
+          })
+          .then(function(json) {
+            // add data to blocks
+            blocks.latest.height     = json.height;
+            blocks.latest.timestamp  = time2timestamp(json.time);
+            blocks.sixty_days.height = json.height - distance;
+            // fetch older block to calculate block time average
+            fetch(apiURL('sixty_days'))
+              .then(function(response) {
+                return response.json();
+              })
+              .then(function(json) {
+                // add data to blocks
+                blocks.sixty_days.timestamp = time2timestamp(json.time);
+                // calculate average time per block
+                blocks.misc.avg_time_block = (blocks.latest.timestamp - blocks.sixty_days.timestamp) / distance;
+                // calculate how many blocks until halving
+                const blocks_until_halving = blocks.halving.height - blocks.latest.height;
+                // calculate time to halving
+                const time_to_halving = blocks_until_halving * blocks.misc.avg_time_block;
+                // finally, calculate timestamp for halving block
+                blocks.halving.timestamp = blocks.latest.timestamp + time_to_halving;
+                // render data on UI
+                document.getElementById('halving-container').innerHTML = shortDate(blocks.halving.timestamp);
+                document.getElementById('latest-height').innerHTML = blocks.latest.height;
+                document.getElementById('latest-timestamp').innerHTML = blocks.latest.timestamp;
+                document.getElementById('from-height').innerHTML = blocks.sixty_days.height + ' <sup>a-c</sup>';
+                document.getElementById('from-timestamp').innerHTML = blocks.sixty_days.timestamp;
+                document.getElementById('average-time').innerHTML = parseInt(blocks.misc.avg_time_block) + ' seconds <sup>(b-d)/c</sup>';
+                document.getElementById('halving-blocks').innerHTML = blocks_until_halving + ' blocks <sup>630000-a</sup>';
+                document.getElementById('halving-timestamp').innerHTML = parseInt(blocks.halving.timestamp) + ' <sup>b+e*f</sup>';
+                document.getElementById('n_blocks_total').innerHTML = blocks.latest.height;
+                document.getElementById('last_block').setAttribute('href', `https://btc.com/block/${blocks.latest.height}`);
+                // start countdown to halving
+                displayCountdown();
+                setInterval(displayCountdown, 1000);
+                // start time ago since last block
+                displayTimeAgo();
+                setInterval(displayTimeAgo, 1000);
+                // show countdown to halving
+                $('#countdown-container').css('visibility', 'visible');
+                // show more link
+                $('#halving').css('visibility', 'visible');
+                getStats();
+              })
+              .catch(function(err) {
+                console.warn('Something went wrong fetching sixty days block', err);
+              });
+          })
+          .catch(function(err) {
+            console.warn('Something went wrong fetching latest block', err);
+          });
+      }
+
+      function displayUptime() {
+        // Current time in seconds from the unix epoch start
+        var timenow = Math.floor(new Date().getTime() / 1000);
+        // Seconds since the bitcoin epoch.
+        // Where 1230951265 is the number of seconds since the unix epoch start at
+        // the time of the first block on Jan 3 2009 02:54:25 GMT
+        var totaltime = timenow - 1230951265;
+        // Downtime for CVE-2010-5139: 8 hours, 27 minutes or 507 minutes = 30420 seconds.
+        // See https://en.bitcoin.it/wiki/Value_overflow_incident
+        // Discussion https://github.com/findbl0k/bitcoinUptime/issues/3
+        var downtime2010 = 30420;
+        // Downtime for CVE-2013-3220: 6 hours, 55 minutes or 415 minutes = 24900 seconds.
+        // See https://github.com/bitcoin/bips/blob/master/bip-0050.mediawiki
+        var downtime2013 = 24900;
+        var downtimeTotal = downtime2010 + downtime2013;
+        var uptimePercent = (100 * (totaltime - downtimeTotal)) / totaltime;
+        var uptimeString = uptimePercent.toFixed(10).toString().concat(' %');
+        document.getElementById('uptime-container').innerHTML = uptimeString;
+      }
+
+      function displayLastBlocks() {
+        //
+        let lastBlocks;
+        const hourTicks = [];
+        const svg = { margin: 20, width: 1300, height: 320 };
+        const numOfPeriods = 7;
+        const secondsPerPeriod = 600;
+        const graphWidth = svg.width - 2 * svg.margin;
+        const secondsToPixels = (graphWidth / numOfPeriods) / secondsPerPeriod;
+        const now = parseInt(new Date().getTime() / 1000);
+        const lastTick = parseInt(now / secondsPerPeriod) * secondsPerPeriod;
+        const diffToNow = parseInt((now - lastTick));
+        //
+        function prettyDate(timestamp) {
+          const date = new Date(timestamp * 1000);
+          const minutes = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+          return `${date.getHours()}:${minutes}`;
+        }
+        //
+        function getXbyTimestamp(timestamp) {
+          return parseInt(svg.width - svg.margin - (now - timestamp) * secondsToPixels);
+        }
+        //
+        function calcTime() {
+          for (let i = numOfPeriods; i >= 0; i--) {
+            const timestamp = lastTick - i * secondsPerPeriod;
+            hourTicks.push({
+              timestamp: timestamp,
+              pretty_date: prettyDate(timestamp),
+              x: getXbyTimestamp(timestamp),
+              y1: svg.height - svg.margin,
+              y2: svg.height - svg.margin * 2,
+            })
+          }
+        }
+        //
+        function drawSVG() {
+          const schema = 'http://www.w3.org/2000/svg';
+          // return a svg line
+          function getLine(x1, y1, x2, y2, color = '#000', width = 1) {
+            const line = document.createElementNS(schema, "line");
+            line.setAttribute('x1', x1);
+            line.setAttribute('y1', y1);
+            line.setAttribute('x2', x2);
+            line.setAttribute('y2', y2);
+            line.setAttribute('style', `stroke:${color}; stroke-width:${width};`);
+            return line;
+          }
+          // return a svg text
+          function getText(str, x, y, vertical = false, color = '#000') {
+            const text = document.createElementNS(schema, "text");
+            text.setAttribute('style', `font-size: 14px; fill: ${color}`);
+            text.textContent = str;
+            if (vertical) {
+              text.setAttribute('transform', `translate(${x},${y}) rotate(-90)`);
+            }
+            else {
+              text.setAttribute('x', x);
+              text.setAttribute('y', y);
+              text.setAttribute('text-anchor', 'middle');
+            }
+            return text;
+          }
+          // return a svg a element
+          function getAnchor(height) {
+            const a = document.createElementNS(schema, "a");
+            a.setAttribute('href', `https://btc.com/block/${height}`);
+            return a;
+          }
+          // return a rectangle centered on coordinates passed
+          function getRect(x1) {
+            const width = 40;
+            const height = 100;
+            const x = x1 - (width / 2);
+            const y = 150;
+            const rect = document.createElementNS(schema, "rect");
+            rect.setAttribute('x', x);
+            rect.setAttribute('y', y);
+            rect.setAttribute('width', width);
+            rect.setAttribute('height', height);
+            rect.setAttribute('style', 'fill:rgb(54,54,54)');
+            return rect;
+          }
+          // our svg
+          const svg1 = document.getElementById('lastBlocksSVG');
+          // remove all elements from svg
+          while (svg1.lastChild) svg1.removeChild(svg1.lastChild);
+          // make x axis
+          const x_axis = {
+            x1: svg.margin,
+            y1: svg.height - 2 * svg.margin,
+            x2: svg.margin + graphWidth,
+            y2: svg.height - 2 * svg.margin,
+          }
+          svg1.appendChild(getLine(x_axis.x1, x_axis.y1, x_axis.x2, x_axis.y2));
+          // put hour ticks on x axis
+          hourTicks.forEach((tick) => {
+            if (tick.x > 10) {
+              svg1.appendChild(getLine(tick.x, tick.y1, tick.x, tick.y2));      // hour marks
+              svg1.appendChild(getText(tick.pretty_date, tick.x, svg.height));  // hours
+            }
+          });
+          // put blocks
+          lastBlocks.forEach((block) => {
+            svg1.appendChild(getText(block.label, block.x - 4, 120, true));          // block height
+            svg1.appendChild(getLine(block.x, block.y1, block.x, block.y2, '#aaa')); // block vertical line
+            const a = getAnchor(block.height)
+            a.appendChild(getRect(block.x));
+            a.appendChild(getText(block.txCount + ' tx', block.x + 6, 230, true, '#fff'));
+            svg1.appendChild(a);
+          });
+          // put 'now' line
+          const nowLine = {
+            x: svg.margin + graphWidth,
+            y1: svg.height - 2 * svg.margin,
+            y2: 35,
+            label: `now ${prettyDate(now)}`,
+            color: "#a00",
+          }
+          svg1.appendChild(getText(nowLine.label, nowLine.x + 13, nowLine.y2 + 65, true, nowLine.color));
+          svg1.appendChild(getLine(nowLine.x, nowLine.y1, nowLine.x, nowLine.y2, nowLine.color));
+        }
+        //
+        fetch('https://mempool.observer/api/recentBlocks')
+          .then(function(response) {
+            return response.json();
+          })
+          .then(function(json) {
+            lastBlocks = json;
+            lastBlocks.forEach((block) => {
+              block.x = getXbyTimestamp(block.timestamp);
+              block.y1 = svg.height - 2 * svg.margin;
+              block.y2 = 30;
+              block.label = `block ${block.height}`;
+            })
+            calcTime();
+            drawSVG();
+          });
+      }
+
+      function getStats() {
+        fetch('https://api.blockchain.info/stats')
+          .then(function(response) {
+            return response.json();
+          })
+          .then(function(json) {
+            const nextretarget_eta = (json.nextretarget - blocks.latest.height) * blocks.misc.avg_time_block + blocks.latest.timestamp;
+            document.getElementById('market_price_usd').innerHTML = json.market_price_usd;
+            document.getElementById('totalbc').innerHTML = (json.totalbc/100000000);
+            document.getElementById('hash_rate').innerHTML = json.hash_rate.toExponential(3);
+            document.getElementById('nextretarget').innerHTML = json.nextretarget;
+            document.getElementById('nextretarget-eta').innerHTML = shortDate(nextretarget_eta);
+            document.getElementById('difficulty').innerHTML = json.difficulty.toExponential(3);
+            document.getElementById('transactions').innerHTML = json.n_tx;
+
+          });
+
+        fetch('https://api.blockchain.info/q/24hravgblocksize')
+          .then(function(response) {
+            return response.json();
+          })
+          .then(function(json) {
+            document.getElementById('block_size').innerHTML = json.toFixed(2) + ' MB';
+          });
+
+        fetch('https://api.blockchain.info/charts/mempool-size?timespan=1days&format=json&cors=true')
+          .then(function(response) {
+            return response.json();
+          })
+          .then(function(json) {
+            const size = json.values.pop();
+            document.getElementById('mempool').innerHTML = size.y + ' bytes';
+          });
+
+      }
+
+      $(function() {
+        // hrefs were in place just for it to work without javascript
+        // if javascript is enabled, show the modal instead
+        $('#CVE-2010-5139').removeAttr('href');
+        $('#CVE-2013-3220').removeAttr('href');
+        $('#hashrate-show').removeAttr('href');
+        $('#hashrate-show').removeAttr('href');
+        $('#difficulty-show').removeAttr('href');
+        $('#transactions-show').removeAttr('href');
+        $('#mempool-show').removeAttr('href');
+        $('#CVE-2010-5139').click(function() { $('#CVE-2010-5139-modal').addClass('is-active'); });
+        $('#CVE-2013-3220').click(function() { $('#CVE-2013-3220-modal').addClass('is-active'); });
+        $('#halving-show').click(function() { $('#halving-modal').addClass('is-active'); });
+        $('#hashrate-show').click(function() { $('#hashrate-modal').addClass('is-active'); });
+        $('#difficulty-show').click(function() { $('#difficulty-modal').addClass('is-active'); });
+        $('#transactions-show').click(function() { $('#transactions-modal').addClass('is-active'); });
+        $('#mempool-show').click(function() { $('#mempool-modal').addClass('is-active'); });
+        $('.delete').click(function() { $('.modal').removeClass('is-active'); });
+
+        $('#market_price_usd').click(function() { location.href = 'https://trade.kraken.com/markets/kraken/btc/usd/1h' });
+        $('#totalbc').click(function() { location.href = 'https://blockchain.info/charts' });
+        $('#hash_rate').click(function() { location.href = 'https://blockchain.info/charts' });
+        $('#nextretarget').click(function() { location.href = 'https://blockchain.info/charts' });
+        $('#difficulty').click(function() { location.href = 'https://blockchain.info/charts' });
+        getHalving();
+        displayUptime();
+        displayLastBlocks()
+        setInterval(displayUptime, 1000);
+        setTimeout(function() {
+          displayLastBlocks();
+          setInterval(getHalving, 60000);
+          setInterval(displayLastBlocks, 60000);
+        }, (60 - new Date().getSeconds()) *  1000);
+      });
+    </script>
+  </body>
+</html>
