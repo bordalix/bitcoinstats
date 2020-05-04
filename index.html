@@ -314,6 +314,7 @@
           timestamp: null,
         },
         latest: {
+          hash: null,
           height: null,
           timestamp: null,
         },
@@ -327,15 +328,16 @@
       };
       function shortDate(timestamp) {
         const date = new Date(timestamp * 1000);
-        return date.toString().split(/\s\d\d:/)[0];
+        const show = date.toString().split(/\s\(/)[0];
+        const diff = date - Date.now();
+        const week = 7 * 24 * 60 * 60 * 1000;
+        if (diff < week) return show;
+        return show.split(/\s\d\d:/)[0];
       }
       // use btc.com api to calculate next halving
       function getHalving() {
         // how many blocks to calculate average (2 months)
         const distance = 6 * 24 * 60;
-        function time2timestamp(time) {
-          return Math.round(Date.parse(time) / 1000);
-        }
         // format time since last block
         function displayTimeAgo() {
           const now = new Date().getTime() / 1000;
@@ -365,66 +367,73 @@
         }
         // return api url for a given block
         function apiURL(block) {
-          let url = 'https://api.blockcypher.com/v1/btc/main';
-          if (block === 'sixty_days') url += '/blocks/' + blocks.sixty_days.height;
-          return url + '?token=fb06f2f1e0274544a5528640b2422f7f';
+          url = 'https://blockstream.info/api';
+          if (block === 'latest') return url + '/blocks/tip/height';
+          if (block === 'sixty_days') return url + '/block-height/' + blocks.sixty_days.height;
+          if (block.length > 10) return url + '/block/' + block;
+          return url + '/block-height/' + block;
         }
         // fetch latest block
         fetch(apiURL('latest'))
-          .then(function(response) {
-            return response.json();
-          })
-          .then(function(json) {
-            // add data to blocks
-            blocks.latest.height     = json.height;
-            blocks.latest.timestamp  = time2timestamp(json.time);
-            blocks.sixty_days.height = json.height - distance;
-            // fetch older block to calculate block time average
-            fetch(apiURL('sixty_days'))
-              .then(function(response) {
-                return response.json();
+        .then(response => response.text())
+        .then(height => {
+          blocks.latest.height = height;
+          fetch(apiURL(height))
+          .then(response => response.text())
+          .then(hash => {
+            fetch(apiURL(hash))
+            .then(response => response.json())
+            .then(json => {
+              // add data to blocks
+              blocks.latest.hash       = hash;
+              blocks.latest.timestamp  = json.timestamp;
+              blocks.sixty_days.height = json.height - distance;
+              // fetch older block to calculate block time average
+              fetch(apiURL('sixty_days'))
+              .then(response => response.text())
+              .then(hash => {
+                fetch(apiURL(hash))
+                .then(response => response.json())
+                .then(json => {
+                  // add data to blocks
+                  blocks.sixty_days.timestamp = json.timestamp;
+                  // calculate average time per block
+                  blocks.misc.avg_time_block = (blocks.latest.timestamp - blocks.sixty_days.timestamp) / distance;
+                  // calculate how many blocks until halving
+                  const blocks_until_halving = blocks.halving.height - blocks.latest.height;
+                  // calculate time to halving
+                  const time_to_halving = blocks_until_halving * blocks.misc.avg_time_block;
+                  // finally, calculate timestamp for halving block
+                  blocks.halving.timestamp = blocks.latest.timestamp + time_to_halving;
+                  // render data on UI
+                  document.getElementById('halving-container').innerHTML = shortDate(blocks.halving.timestamp);
+                  document.getElementById('latest-height').innerHTML = blocks.latest.height;
+                  document.getElementById('latest-timestamp').innerHTML = blocks.latest.timestamp;
+                  document.getElementById('from-height').innerHTML = blocks.sixty_days.height + ' <sup>a-c</sup>';
+                  document.getElementById('from-timestamp').innerHTML = blocks.sixty_days.timestamp;
+                  document.getElementById('average-time').innerHTML = parseInt(blocks.misc.avg_time_block) + ' seconds <sup>(b-d)/c</sup>';
+                  document.getElementById('halving-blocks').innerHTML = blocks_until_halving + ' blocks <sup>630000-a</sup>';
+                  document.getElementById('halving-timestamp').innerHTML = parseInt(blocks.halving.timestamp) + ' <sup>b+e*f</sup>';
+                  document.getElementById('n_blocks_total').innerHTML = blocks.latest.height;
+                  document.getElementById('last_block').setAttribute('href', `https://btc.com/block/${blocks.latest.height}`);
+                  // start countdown to halving
+                  displayCountdown();
+                  setInterval(displayCountdown, 1000);
+                  // start time ago since last block
+                  displayTimeAgo();
+                  setInterval(displayTimeAgo, 1000);
+                  // show countdown to halving
+                  $('#countdown-container').css('visibility', 'visible');
+                  // show more link
+                  $('#halving').css('visibility', 'visible');
+                  getStats();
+                });
               })
-              .then(function(json) {
-                // add data to blocks
-                blocks.sixty_days.timestamp = time2timestamp(json.time);
-                // calculate average time per block
-                blocks.misc.avg_time_block = (blocks.latest.timestamp - blocks.sixty_days.timestamp) / distance;
-                // calculate how many blocks until halving
-                const blocks_until_halving = blocks.halving.height - blocks.latest.height;
-                // calculate time to halving
-                const time_to_halving = blocks_until_halving * blocks.misc.avg_time_block;
-                // finally, calculate timestamp for halving block
-                blocks.halving.timestamp = blocks.latest.timestamp + time_to_halving;
-                // render data on UI
-                document.getElementById('halving-container').innerHTML = shortDate(blocks.halving.timestamp);
-                document.getElementById('latest-height').innerHTML = blocks.latest.height;
-                document.getElementById('latest-timestamp').innerHTML = blocks.latest.timestamp;
-                document.getElementById('from-height').innerHTML = blocks.sixty_days.height + ' <sup>a-c</sup>';
-                document.getElementById('from-timestamp').innerHTML = blocks.sixty_days.timestamp;
-                document.getElementById('average-time').innerHTML = parseInt(blocks.misc.avg_time_block) + ' seconds <sup>(b-d)/c</sup>';
-                document.getElementById('halving-blocks').innerHTML = blocks_until_halving + ' blocks <sup>630000-a</sup>';
-                document.getElementById('halving-timestamp').innerHTML = parseInt(blocks.halving.timestamp) + ' <sup>b+e*f</sup>';
-                document.getElementById('n_blocks_total').innerHTML = blocks.latest.height;
-                document.getElementById('last_block').setAttribute('href', `https://btc.com/block/${blocks.latest.height}`);
-                // start countdown to halving
-                displayCountdown();
-                setInterval(displayCountdown, 1000);
-                // start time ago since last block
-                displayTimeAgo();
-                setInterval(displayTimeAgo, 1000);
-                // show countdown to halving
-                $('#countdown-container').css('visibility', 'visible');
-                // show more link
-                $('#halving').css('visibility', 'visible');
-                getStats();
-              })
-              .catch(function(err) {
-                console.warn('Something went wrong fetching sixty days block', err);
-              });
+              .catch(err => console.warn('Something went wrong fetching sixty days block', err));
+            });
           })
-          .catch(function(err) {
-            console.warn('Something went wrong fetching latest block', err);
-          });
+          .catch(err => console.warn('Something went wrong fetching latest block', err));
+        });
       }
 
       function displayUptime() {
