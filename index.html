@@ -100,9 +100,9 @@
             <dd>6 hours and 55 minutes</dd>
             <dt>Blocks</dt>
             <dd>
-              <a href="https://blockexplorer.com/block/00000000000001c108384350f74090433e7fcf79a606b8e797f065b130575932">225430</a>
+              <a href="https://blockstream.info/block/00000000000001c108384350f74090433e7fcf79a606b8e797f065b130575932">225430</a>
               to
-              <a href="https://blockexplorer.com/block/00000000000001976860e9e35b20b8ebe22c35f813a40962c25ead9fbd89510b">225454</a>
+              <a href="https://blockstream.info/block/00000000000001976860e9e35b20b8ebe22c35f813a40962c25ead9fbd89510b">225454</a>
             </dd>
             <dt>Discussion</dt>
             <dd>
@@ -134,9 +134,9 @@
             <dd>8 hours and 27 minutes</dd>
             <dt>Blocks</dt>
             <dd>
-              <a href="https://blockexplorer.com/block/000000000069e1affe7161ab4bcbeacebb4ddf155b50e807f42de971b688a09b">74638</a>
+              <a href="https://blockstream.info/block/000000000069e1affe7161ab4bcbeacebb4ddf155b50e807f42de971b688a09b">74638</a>
               to
-              <a href="https://blockexplorer.com/block/00000000005c22d199706df1c38b38d76f8401920dcbe91edf3417f8847da707">74691</a>
+              <a href="https://blockstream.info/block/00000000005c22d199706df1c38b38d76f8401920dcbe91edf3417f8847da707">74691</a>
             </dd>
             <dt>Discussion</dt>
             <dd>
@@ -167,7 +167,7 @@
             <dt>Time ago</dt>
             <dd id="latest-time-ago"></dd>
             <dt>Distance (c)</dt>
-            <dd>8640 blocks (~2 months)</dd>
+            <dd id="distance-blocks">8640 blocks (~2 months)</dd>
             <dt>From block</dt>
             <dd id="from-height"></dd>
             <dt>Timestamp (d)</dt>
@@ -189,7 +189,7 @@
           <div class="tile">
             <div class="tile is-parent is-vertical">
               <article class="tile is-child box">
-                <h2>Market price USD</h2>
+                <h2>Market price</h2>
                 <p id="market_price_usd"></p>
                 <noscript><span class="tag is-dark">Enable javascript</span></noscript>
                 <p><a href="https://trade.kraken.com/markets/kraken/btc/usd/1h">Live on Kraken</a></p>
@@ -326,6 +326,12 @@
           avg_time_block: null,
         }
       };
+      function prettyNumber(number, usd = false) {
+        const language = window.navigator.language;
+        const options = usd ? { style: 'currency', currency: 'USD' } : {};
+        return new Intl.NumberFormat(language, options).format(number);
+      }
+      // format date, show hour if less than one week
       function shortDate(timestamp) {
         const date = new Date(timestamp * 1000);
         const show = date.toString().split(/\s\(/)[0];
@@ -334,7 +340,7 @@
         if (diff < week) return show;
         return show.split(/\s\d\d:/)[0];
       }
-      // use btc.com api to calculate next halving
+      // use blockstream.info api to calculate next halving
       function getHalving() {
         // how many blocks to calculate average (2 months)
         const distance = 6 * 24 * 60;
@@ -377,7 +383,6 @@
         fetch(apiURL('latest'))
         .then(response => response.text())
         .then(height => {
-          blocks.latest.height = height;
           fetch(apiURL(height))
           .then(response => response.text())
           .then(hash => {
@@ -385,6 +390,7 @@
             .then(response => response.json())
             .then(json => {
               // add data to blocks
+              blocks.latest.height     = height;
               blocks.latest.hash       = hash;
               blocks.latest.timestamp  = json.timestamp;
               blocks.sixty_days.height = json.height - distance;
@@ -407,15 +413,16 @@
                   blocks.halving.timestamp = blocks.latest.timestamp + time_to_halving;
                   // render data on UI
                   document.getElementById('halving-container').innerHTML = shortDate(blocks.halving.timestamp);
-                  document.getElementById('latest-height').innerHTML = blocks.latest.height;
-                  document.getElementById('latest-timestamp').innerHTML = blocks.latest.timestamp;
-                  document.getElementById('from-height').innerHTML = blocks.sixty_days.height + ' <sup>a-c</sup>';
-                  document.getElementById('from-timestamp').innerHTML = blocks.sixty_days.timestamp;
+                  document.getElementById('latest-height').innerHTML = prettyNumber(blocks.latest.height);
+                  document.getElementById('latest-timestamp').innerHTML = prettyNumber(blocks.latest.timestamp);
+                  document.getElementById('distance-blocks').innerHTML = prettyNumber(8640) + ' blocks (~2 months)';
+                  document.getElementById('from-height').innerHTML = prettyNumber(blocks.sixty_days.height) + ' <sup>a-c</sup>';
+                  document.getElementById('from-timestamp').innerHTML = prettyNumber(blocks.sixty_days.timestamp);
                   document.getElementById('average-time').innerHTML = parseInt(blocks.misc.avg_time_block) + ' seconds <sup>(b-d)/c</sup>';
-                  document.getElementById('halving-blocks').innerHTML = blocks_until_halving + ' blocks <sup>630000-a</sup>';
-                  document.getElementById('halving-timestamp').innerHTML = parseInt(blocks.halving.timestamp) + ' <sup>b+e*f</sup>';
-                  document.getElementById('n_blocks_total').innerHTML = blocks.latest.height;
-                  document.getElementById('last_block').setAttribute('href', `https://btc.com/block/${blocks.latest.height}`);
+                  document.getElementById('halving-blocks').innerHTML = prettyNumber(blocks_until_halving) + ' blocks <sup>630000-a</sup>';
+                  document.getElementById('halving-timestamp').innerHTML = prettyNumber(parseInt(blocks.halving.timestamp)) + ' <sup>b+e*f</sup>';
+                  document.getElementById('n_blocks_total').innerHTML = prettyNumber(blocks.latest.height);
+                  document.getElementById('last_block').setAttribute('href', `https://blockstream.info/block/${blocks.latest.hash}`);
                   // start countdown to halving
                   displayCountdown();
                   setInterval(displayCountdown, 1000);
@@ -603,13 +610,13 @@
           })
           .then(function(json) {
             const nextretarget_eta = (json.nextretarget - blocks.latest.height) * blocks.misc.avg_time_block + blocks.latest.timestamp;
-            document.getElementById('market_price_usd').innerHTML = json.market_price_usd;
-            document.getElementById('totalbc').innerHTML = (json.totalbc/100000000);
+            document.getElementById('market_price_usd').innerHTML = prettyNumber(json.market_price_usd, 'usd');
+            document.getElementById('totalbc').innerHTML = prettyNumber(json.totalbc/100000000);
             document.getElementById('hash_rate').innerHTML = json.hash_rate.toExponential(3);
-            document.getElementById('nextretarget').innerHTML = json.nextretarget;
+            document.getElementById('nextretarget').innerHTML = prettyNumber(json.nextretarget);
             document.getElementById('nextretarget-eta').innerHTML = shortDate(nextretarget_eta);
             document.getElementById('difficulty').innerHTML = json.difficulty.toExponential(3);
-            document.getElementById('transactions').innerHTML = json.n_tx;
+            document.getElementById('transactions').innerHTML = prettyNumber(json.n_tx);
 
           });
 
@@ -627,12 +634,21 @@
           })
           .then(function(json) {
             const size = json.values.pop();
-            document.getElementById('mempool').innerHTML = size.y + ' bytes';
+            document.getElementById('mempool').innerHTML = prettyNumber(size.y) + ' bytes';
           });
 
       }
 
       $(function() {
+        function openModal(domID) {
+          history.pushState({}, '');
+          $(domID).addClass('is-active');
+        }
+        function closeModal(back = true) {
+          $('.modal').removeClass('is-active');
+          if (back) history.back();
+        }
+        window.addEventListener('popstate', () => closeModal(false));
         // hrefs were in place just for it to work without javascript
         // if javascript is enabled, show the modal instead
         $('#CVE-2010-5139').removeAttr('href');
@@ -642,20 +658,19 @@
         $('#difficulty-show').removeAttr('href');
         $('#transactions-show').removeAttr('href');
         $('#mempool-show').removeAttr('href');
-        $('#CVE-2010-5139').click(function() { $('#CVE-2010-5139-modal').addClass('is-active'); });
-        $('#CVE-2013-3220').click(function() { $('#CVE-2013-3220-modal').addClass('is-active'); });
-        $('#halving-show').click(function() { $('#halving-modal').addClass('is-active'); });
-        $('#hashrate-show').click(function() { $('#hashrate-modal').addClass('is-active'); });
-        $('#difficulty-show').click(function() { $('#difficulty-modal').addClass('is-active'); });
-        $('#transactions-show').click(function() { $('#transactions-modal').addClass('is-active'); });
-        $('#mempool-show').click(function() { $('#mempool-modal').addClass('is-active'); });
-        $('.delete').click(function() { $('.modal').removeClass('is-active'); });
-
-        $('#market_price_usd').click(function() { location.href = 'https://trade.kraken.com/markets/kraken/btc/usd/1h' });
-        $('#totalbc').click(function() { location.href = 'https://blockchain.info/charts' });
-        $('#hash_rate').click(function() { location.href = 'https://blockchain.info/charts' });
-        $('#nextretarget').click(function() { location.href = 'https://blockchain.info/charts' });
-        $('#difficulty').click(function() { location.href = 'https://blockchain.info/charts' });
+        $('#CVE-2010-5139').click(() => openModal('#CVE-2010-5139-modal'));
+        $('#CVE-2013-3220').click(() => openModal('#CVE-2013-3220-modal'));
+        $('#halving-show').click(() => openModal('#halving-modal'));
+        $('#hashrate-show').click(() => openModal('#hashrate-modal'));
+        $('#difficulty-show').click(() => openModal('#difficulty-modal'));
+        $('#transactions-show').click(() => openModal('#transactions-modal'));
+        $('#mempool-show').click(() => openModal('#mempool-modal'));
+        $('.delete').click(() => closeModal());
+        $('#market_price_usd').click(() => location.href = 'https://trade.kraken.com/markets/kraken/btc/usd/1h');
+        $('#totalbc').click(() => location.href = 'https://blockchain.info/charts');
+        $('#hash_rate').click(() => location.href = 'https://blockchain.info/charts');
+        $('#nextretarget').click(() => location.href = 'https://blockchain.info/charts');
+        $('#difficulty').click(() => location.href = 'https://blockchain.info/charts');
         getHalving();
         displayUptime();
         displayLastBlocks()
