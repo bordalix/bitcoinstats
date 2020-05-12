@@ -178,6 +178,8 @@
             <dd id="halving-blocks"></dd>
             <dt>Timestamp</dt>
             <dd id="halving-timestamp"></dd>
+            <dt>Date</dt>
+            <dd id="halving-date"></dd>
           </dl>
         </section>
       </div>
@@ -356,8 +358,14 @@
         }
         // display countdown
         function displayCountdown() {
+          const year = 60 * 60 * 24 * 365;
           const now = new Date().getTime() / 1000;
           let seconds = parseInt(blocks.halving.timestamp - now);
+          const years = seconds / year;
+          if (years > 1) {
+            document.getElementById('countdown-container').innerHTML = `More than ${parseInt(years)} years`;
+            return false;
+          }
           const minute = 60;
           const hour = 60 * minute;
           const day = 24 * hour;
@@ -368,8 +376,8 @@
           const minutes = Math.floor(seconds / minute);
           seconds -= minutes * minute;
           const countdown = days + 'd ' + hours + 'h ' + minutes + 'm ' + seconds + 's';
-          const countdown_container = document.getElementById('countdown-container');
-          countdown_container.innerHTML = countdown;
+          document.getElementById('countdown-container').innerHTML = countdown;
+          return true;
         }
         // return api url for a given block
         function apiURL(block) {
@@ -421,11 +429,11 @@
                   document.getElementById('average-time').innerHTML = parseInt(blocks.misc.avg_time_block) + ' seconds <sup>(b-d)/c</sup>';
                   document.getElementById('halving-blocks').innerHTML = prettyNumber(blocks_until_halving) + ' blocks <sup>630000-a</sup>';
                   document.getElementById('halving-timestamp').innerHTML = prettyNumber(parseInt(blocks.halving.timestamp)) + ' <sup>b+e*f</sup>';
+                  document.getElementById('halving-date').innerHTML = shortDate(blocks.halving.timestamp);
                   document.getElementById('n_blocks_total').innerHTML = prettyNumber(blocks.latest.height);
                   document.getElementById('last_block').setAttribute('href', `https://blockstream.info/block/${blocks.latest.hash}`);
                   // start countdown to halving
-                  displayCountdown();
-                  setInterval(displayCountdown, 1000);
+                  if (displayCountdown()) setInterval(displayCountdown, 1000);
                   // start time ago since last block
                   displayTimeAgo();
                   setInterval(displayTimeAgo, 1000);
