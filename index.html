@@ -184,6 +184,40 @@
         </section>
       </div>
     </div>
+    <div id="retarget-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Next retarget</p>
+          <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+          <p>Using 2 weeks block time average</p>
+          <dl>
+            <dt>Latest block (a)</dt>
+            <dd id="retarget-latest-height"></dd>
+            <dt>Timestamp (b)</dt>
+            <dd id="retarget-latest-timestamp"></dd>
+            <dt>Time ago</dt>
+            <dd id="retarget-latest-time-ago"></dd>
+            <dt>Distance (c)</dt>
+            <dd id="retarget-distance-blocks">2016 blocks (~2 weeks)</dd>
+            <dt>From block</dt>
+            <dd id="retarget-from-height"></dd>
+            <dt>Timestamp (d)</dt>
+            <dd id="retarget-from-timestamp"></dd>
+            <dt>Avg p/ block (e)</dt>
+            <dd id="retarget-average-time"></dd>
+            <dt>To retarget (f)</dt>
+            <dd id="retarget-blocks"></dd>
+            <dt>Timestamp</dt>
+            <dd id="retarget-timestamp"></dd>
+            <dt>Date</dt>
+            <dd id="retarget-date"></dd>
+          </dl>
+        </section>
+      </div>
+    </div>
     <section class="section has-text-centered">
       <div class="container">
         <h1 class="title">Bitcoin stats</h1>
@@ -236,6 +270,9 @@
                 <p id="nextretarget"></p>
                 <noscript><span class="tag is-dark">Enable javascript</span></noscript>
                 <p id="nextretarget-eta"></p>
+                <p id="retarget" style="visibility:none">
+                  <a id="retarget-show">Know more</a>
+                </p>
               </article>
               <article class="tile is-child box">
                 <h2>Bitcoins mined</h2>
@@ -324,153 +361,41 @@
           height: null,
           timestamp: null,
         },
-        misc: {
-          avg_time_block: null,
+        fourteen_days: {
+          height: null,
+          timestamp: null,
+        },
+        retarget: {
+          height: null,
+          timestamp: null,
+        },
+        avg_time_block: {
+          sixty_days: null,
+          fourteen_days: null,
+        },
+        distance: {
+          sixty_days: 6 * 24 * 60,
+          fourteen_days:  6 * 24 * 14,
+        },
+        until: {
+          halving: null,
+          retarget: null,
+        },
+        time_to: {
+          halving: null,
+          retarget: null,
+        },
+        stats: {
+          mempoolsize: null,
+          avgblocksize: null,
+          market_price_usd: null,
+          difficulty: null,
+          hash_rate: null,
+          totalbc: null,
+          n_tx: null,
         }
       };
-      function prettyNumber(number, usd = false) {
-        const language = window.navigator.language;
-        const options = usd ? { style: 'currency', currency: 'USD' } : {};
-        return new Intl.NumberFormat(language, options).format(number);
-      }
-      // format date, show hour if less than one week
-      function shortDate(timestamp) {
-        const date = new Date(timestamp * 1000);
-        const show = date.toString().split(/\s\(/)[0];
-        const diff = date - Date.now();
-        const week = 7 * 24 * 60 * 60 * 1000;
-        if (diff < week) return show;
-        return show.split(/\s\d\d:/)[0];
-      }
-      // use blockstream.info api to calculate next halving
-      function getHalving() {
-        // how many blocks to calculate average (2 months)
-        const distance = 6 * 24 * 60;
-        // format time since last block
-        function displayTimeAgo() {
-          const now = new Date().getTime() / 1000;
-          let seconds = parseInt(now - blocks.latest.timestamp);
-          const minutes = Math.floor(seconds / 60);
-          seconds -= minutes * 60;
-          const time_ago = minutes + 'm ' + seconds + 's';
-          const latest_time_ago = document.getElementById('latest-time-ago');
-          latest_time_ago.innerHTML = time_ago;
-        }
-        // display countdown
-        function displayCountdown() {
-          const year = 60 * 60 * 24 * 365;
-          const now = new Date().getTime() / 1000;
-          let seconds = parseInt(blocks.halving.timestamp - now);
-          const years = seconds / year;
-          if (years > 1) {
-            document.getElementById('countdown-container').innerHTML = `More than ${parseInt(years)} years`;
-            return false;
-          }
-          const minute = 60;
-          const hour = 60 * minute;
-          const day = 24 * hour;
-          const days = Math.floor(seconds / day);
-          seconds -= days * day;
-          const hours = Math.floor(seconds / hour);
-          seconds -= hours * hour;
-          const minutes = Math.floor(seconds / minute);
-          seconds -= minutes * minute;
-          const countdown = days + 'd ' + hours + 'h ' + minutes + 'm ' + seconds + 's';
-          document.getElementById('countdown-container').innerHTML = countdown;
-          return true;
-        }
-        // return api url for a given block
-        function apiURL(block) {
-          url = 'https://blockstream.info/api';
-          if (block === 'latest') return url + '/blocks/tip/height';
-          if (block === 'sixty_days') return url + '/block-height/' + blocks.sixty_days.height;
-          if (block.length > 10) return url + '/block/' + block;
-          return url + '/block-height/' + block;
-        }
-        // fetch latest block
-        fetch(apiURL('latest'))
-        .then(response => response.text())
-        .then(height => {
-          fetch(apiURL(height))
-          .then(response => response.text())
-          .then(hash => {
-            fetch(apiURL(hash))
-            .then(response => response.json())
-            .then(json => {
-              // add data to blocks
-              blocks.latest.height     = height;
-              blocks.latest.hash       = hash;
-              blocks.latest.timestamp  = json.timestamp;
-              blocks.sixty_days.height = json.height - distance;
-              // fetch older block to calculate block time average
-              fetch(apiURL('sixty_days'))
-              .then(response => response.text())
-              .then(hash => {
-                fetch(apiURL(hash))
-                .then(response => response.json())
-                .then(json => {
-                  // add data to blocks
-                  blocks.sixty_days.timestamp = json.timestamp;
-                  // calculate average time per block
-                  blocks.misc.avg_time_block = (blocks.latest.timestamp - blocks.sixty_days.timestamp) / distance;
-                  // calculate how many blocks until halving
-                  const blocks_until_halving = blocks.halving.height - blocks.latest.height;
-                  // calculate time to halving
-                  const time_to_halving = blocks_until_halving * blocks.misc.avg_time_block;
-                  // finally, calculate timestamp for halving block
-                  blocks.halving.timestamp = blocks.latest.timestamp + time_to_halving;
-                  // render data on UI
-                  document.getElementById('halving-container').innerHTML = shortDate(blocks.halving.timestamp);
-                  document.getElementById('latest-height').innerHTML = prettyNumber(blocks.latest.height);
-                  document.getElementById('latest-timestamp').innerHTML = prettyNumber(blocks.latest.timestamp);
-                  document.getElementById('distance-blocks').innerHTML = prettyNumber(8640) + ' blocks (~2 months)';
-                  document.getElementById('from-height').innerHTML = prettyNumber(blocks.sixty_days.height) + ' <sup>a-c</sup>';
-                  document.getElementById('from-timestamp').innerHTML = prettyNumber(blocks.sixty_days.timestamp);
-                  document.getElementById('average-time').innerHTML = parseInt(blocks.misc.avg_time_block) + ' seconds <sup>(b-d)/c</sup>';
-                  document.getElementById('halving-blocks').innerHTML = prettyNumber(blocks_until_halving) + ' blocks <sup>630000-a</sup>';
-                  document.getElementById('halving-timestamp').innerHTML = prettyNumber(parseInt(blocks.halving.timestamp)) + ' <sup>b+e*f</sup>';
-                  document.getElementById('halving-date').innerHTML = shortDate(blocks.halving.timestamp);
-                  document.getElementById('n_blocks_total').innerHTML = prettyNumber(blocks.latest.height);
-                  document.getElementById('last_block').setAttribute('href', `https://blockstream.info/block/${blocks.latest.hash}`);
-                  // start countdown to halving
-                  if (displayCountdown()) setInterval(displayCountdown, 1000);
-                  // start time ago since last block
-                  displayTimeAgo();
-                  setInterval(displayTimeAgo, 1000);
-                  // show countdown to halving
-                  $('#countdown-container').css('visibility', 'visible');
-                  // show more link
-                  $('#halving').css('visibility', 'visible');
-                  getStats();
-                });
-              })
-              .catch(err => console.warn('Something went wrong fetching sixty days block', err));
-            });
-          })
-          .catch(err => console.warn('Something went wrong fetching latest block', err));
-        });
-      }
-
-      function displayUptime() {
-        // Current time in seconds from the unix epoch start
-        var timenow = Math.floor(new Date().getTime() / 1000);
-        // Seconds since the bitcoin epoch.
-        // Where 1230951265 is the number of seconds since the unix epoch start at
-        // the time of the first block on Jan 3 2009 02:54:25 GMT
-        var totaltime = timenow - 1230951265;
-        // Downtime for CVE-2010-5139: 8 hours, 27 minutes or 507 minutes = 30420 seconds.
-        // See https://en.bitcoin.it/wiki/Value_overflow_incident
-        // Discussion https://github.com/findbl0k/bitcoinUptime/issues/3
-        var downtime2010 = 30420;
-        // Downtime for CVE-2013-3220: 6 hours, 55 minutes or 415 minutes = 24900 seconds.
-        // See https://github.com/bitcoin/bips/blob/master/bip-0050.mediawiki
-        var downtime2013 = 24900;
-        var downtimeTotal = downtime2010 + downtime2013;
-        var uptimePercent = (100 * (totaltime - downtimeTotal)) / totaltime;
-        var uptimeString = uptimePercent.toFixed(10).toString().concat(' %');
-        document.getElementById('uptime-container').innerHTML = uptimeString;
-      }
-
+      //
       function displayLastBlocks() {
         //
         let lastBlocks;
@@ -595,59 +520,22 @@
         }
         //
         fetch('https://mempool.observer/api/recentBlocks')
-          .then(function(response) {
-            return response.json();
+        .then(response => response.json())
+        .then(json => {
+          lastBlocks = json;
+          lastBlocks.forEach((block) => {
+            block.x = getXbyTimestamp(block.timestamp);
+            block.y1 = svg.height - 2 * svg.margin;
+            block.y2 = 30;
+            block.label = `block ${block.height}`;
           })
-          .then(function(json) {
-            lastBlocks = json;
-            lastBlocks.forEach((block) => {
-              block.x = getXbyTimestamp(block.timestamp);
-              block.y1 = svg.height - 2 * svg.margin;
-              block.y2 = 30;
-              block.label = `block ${block.height}`;
-            })
-            calcTime();
-            drawSVG();
-          });
+          calcTime();
+          drawSVG();
+        });
       }
-
-      function getStats() {
-        fetch('https://api.blockchain.info/stats')
-          .then(function(response) {
-            return response.json();
-          })
-          .then(function(json) {
-            const nextretarget_eta = (json.nextretarget - blocks.latest.height) * blocks.misc.avg_time_block + blocks.latest.timestamp;
-            document.getElementById('market_price_usd').innerHTML = prettyNumber(json.market_price_usd, 'usd');
-            document.getElementById('totalbc').innerHTML = prettyNumber(json.totalbc/100000000);
-            document.getElementById('hash_rate').innerHTML = json.hash_rate.toExponential(3);
-            document.getElementById('nextretarget').innerHTML = prettyNumber(json.nextretarget);
-            document.getElementById('nextretarget-eta').innerHTML = shortDate(nextretarget_eta);
-            document.getElementById('difficulty').innerHTML = json.difficulty.toExponential(3);
-            document.getElementById('transactions').innerHTML = prettyNumber(json.n_tx);
-
-          });
-
-        fetch('https://api.blockchain.info/q/24hravgblocksize')
-          .then(function(response) {
-            return response.json();
-          })
-          .then(function(json) {
-            document.getElementById('block_size').innerHTML = json.toFixed(2) + ' MB';
-          });
-
-        fetch('https://api.blockchain.info/charts/mempool-size?timespan=1days&format=json&cors=true')
-          .then(function(response) {
-            return response.json();
-          })
-          .then(function(json) {
-            const size = json.values.pop();
-            document.getElementById('mempool').innerHTML = prettyNumber(size.y) + ' bytes';
-          });
-
-      }
-
-      $(function() {
+      //
+      function initDOM() {
+        // modal utils
         function openModal(domID) {
           history.pushState({}, '');
           $(domID).addClass('is-active');
@@ -656,6 +544,7 @@
           $('.modal').removeClass('is-active');
           if (back) history.back();
         }
+
         window.addEventListener('popstate', () => closeModal(false));
         // hrefs were in place just for it to work without javascript
         // if javascript is enabled, show the modal instead
@@ -673,21 +562,240 @@
         $('#difficulty-show').click(() => openModal('#difficulty-modal'));
         $('#transactions-show').click(() => openModal('#transactions-modal'));
         $('#mempool-show').click(() => openModal('#mempool-modal'));
+        $('#retarget-show').click(() => openModal('#retarget-modal'));
         $('.delete').click(() => closeModal());
         $('#market_price_usd').click(() => location.href = 'https://trade.kraken.com/markets/kraken/btc/usd/1h');
         $('#totalbc').click(() => location.href = 'https://blockchain.info/charts');
         $('#hash_rate').click(() => location.href = 'https://blockchain.info/charts');
         $('#nextretarget').click(() => location.href = 'https://blockchain.info/charts');
         $('#difficulty').click(() => location.href = 'https://blockchain.info/charts');
-        getHalving();
-        displayUptime();
-        displayLastBlocks()
-        setInterval(displayUptime, 1000);
+      }
+      //
+      function startTimers() {
+        // display countdown
+        function displayCountdown() {
+          const year = 60 * 60 * 24 * 365;
+          const now = new Date().getTime() / 1000;
+          let seconds = parseInt(blocks.halving.timestamp - now);
+          const years = seconds / year;
+          if (years > 1) {
+            document.getElementById('countdown-container').innerHTML = `More than ${parseInt(years)} years`;
+            return false;
+          }
+          const minute = 60;
+          const hour = 60 * minute;
+          const day = 24 * hour;
+          const days = Math.floor(seconds / day);
+          seconds -= days * day;
+          const hours = Math.floor(seconds / hour);
+          seconds -= hours * hour;
+          const minutes = Math.floor(seconds / minute);
+          seconds -= minutes * minute;
+          const countdown = days + 'd ' + hours + 'h ' + minutes + 'm ' + seconds + 's';
+          document.getElementById('countdown-container').innerHTML = countdown;
+          return true;
+        }
+        // format time since last block
+        function displayTimeAgo() {
+          const now = new Date().getTime() / 1000;
+          let seconds = parseInt(now - blocks.latest.timestamp);
+          const minutes = Math.floor(seconds / 60);
+          seconds -= minutes * 60;
+          const time_ago = minutes + 'm ' + seconds + 's';
+          document.getElementById('latest-time-ago').innerHTML = time_ago;
+          document.getElementById('retarget-latest-time-ago').innerHTML = time_ago;
+          return true;
+        }
+        // display network uptime
+        function displayUptime() {
+          // Current time in seconds from the unix epoch start
+          var timenow = Math.floor(new Date().getTime() / 1000);
+          // Seconds since the bitcoin epoch.
+          // Where 1230951265 is the number of seconds since the unix epoch start at
+          // the time of the first block on Jan 3 2009 02:54:25 GMT
+          var totaltime = timenow - 1230951265;
+          // Downtime for CVE-2010-5139: 8 hours, 27 minutes or 507 minutes = 30420 seconds.
+          // See https://en.bitcoin.it/wiki/Value_overflow_incident
+          // Discussion https://github.com/findbl0k/bitcoinUptime/issues/3
+          var downtime2010 = 30420;
+          // Downtime for CVE-2013-3220: 6 hours, 55 minutes or 415 minutes = 24900 seconds.
+          // See https://github.com/bitcoin/bips/blob/master/bip-0050.mediawiki
+          var downtime2013 = 24900;
+          var downtimeTotal = downtime2010 + downtime2013;
+          var uptimePercent = (100 * (totaltime - downtimeTotal)) / totaltime;
+          var uptimeString = uptimePercent.toFixed(10).toString().concat(' %');
+          document.getElementById('uptime-container').innerHTML = uptimeString;
+          return true;
+        }
+        // set timers
+        if (displayCountdown()) setInterval(displayCountdown, 1000);
+        if (displayTimeAgo()) setInterval(displayTimeAgo, 1000);
+        if (displayUptime()) setInterval(displayUptime, 1000);
         setTimeout(function() {
-          displayLastBlocks();
-          setInterval(getHalving, 60000);
-          setInterval(displayLastBlocks, 60000);
+          getFullData();
+          setInterval(getFullData, 60000);
         }, (60 - new Date().getSeconds()) *  1000);
+      }
+
+      function getFullData() {
+        function apiURL(block) {
+          url = 'https://blockstream.info/api';
+          if (block === 'latest') return url + '/blocks/tip/height';
+          if (block === 'sixty_days') return url + '/block-height/' + parseInt(blocks.latest.height - blocks.distance.sixty_days);
+          if (block === 'fourteen_days') return url + '/block-height/' + parseInt(blocks.latest.height - blocks.distance.fourteen_days);
+          if (block.length > 10) return url + '/block/' + block;
+          return url + '/block-height/' + block;
+        }
+        // fetch latest block
+        fetch(apiURL('latest'))
+        .then(response => response.text())
+        .then(latest_height => {
+          blocks.latest.height = parseInt(latest_height);
+          fetch(apiURL(latest_height))
+          .then(response => response.text())
+          .then(latest_hash => {
+            fetch(apiURL(latest_hash))
+            .then(response => response.json())
+            .then(latest => {
+              fetch(apiURL('sixty_days'))
+              .then(response => response.text())
+              .then(sixty_days_hash => {
+                fetch(apiURL(sixty_days_hash))
+                .then(response => response.json())
+                .then(sixty_days => {
+                  fetch(apiURL('fourteen_days'))
+                  .then(response => response.text())
+                  .then(fourteen_days_hash => {
+                    fetch(apiURL(fourteen_days_hash))
+                    .then(response => response.json())
+                    .then(fourteen_days => {
+                      fetch('https://api.blockchain.info/stats')
+                      .then(response => response.json())
+                      .then(stats => {
+                        fetch('https://api.blockchain.info/q/24hravgblocksize')
+                        .then(response => response.json())
+                        .then(avgblocksize => {
+                          fetch('https://api.blockchain.info/charts/mempool-size?timespan=1days&format=json&cors=true')
+                          .then(response => response.json())
+                          .then(mempool => {
+                            // stats
+                            blocks.stats.n_tx             = stats.n_tx;
+                            blocks.stats.totalbc          = stats.totalbc;
+                            blocks.stats.hash_rate        = stats.hash_rate;
+                            blocks.stats.difficulty       = stats.difficulty;
+                            blocks.stats.market_price_usd = stats.market_price_usd;
+                            blocks.stats.mempoolsize      = mempool.values.pop();
+                            blocks.stats.avgblocksize     = avgblocksize;
+                            // latest block
+                            blocks.latest.hash      = latest_hash;
+                            blocks.latest.timestamp = latest.timestamp;
+                            // sixty days block
+                            blocks.sixty_days.height    = latest.height - blocks.distance.sixty_days;
+                            blocks.sixty_days.timestamp = sixty_days.timestamp;
+                            // fourteen days block
+                            blocks.fourteen_days.height    = latest.height - blocks.distance.fourteen_days;
+                            blocks.fourteen_days.timestamp = fourteen_days.timestamp;
+                            // calculate average time per block
+                            blocks.avg_time_block.sixty_days    = (blocks.latest.timestamp - blocks.sixty_days.timestamp)    / blocks.distance.sixty_days;
+                            blocks.avg_time_block.fourteen_days = (blocks.latest.timestamp - blocks.fourteen_days.timestamp) / blocks.distance.fourteen_days;
+                            // future blocks
+                            blocks.retarget.height    = stats.nextretarget;
+                            blocks.until.halving      = blocks.halving.height   - blocks.latest.height;
+                            blocks.until.retarget     = blocks.retarget.height  - blocks.latest.height;
+                            blocks.time_to.halving    = blocks.until.halving    * blocks.avg_time_block.sixty_days;
+                            blocks.time_to.retarget   = blocks.until.retarget   * blocks.avg_time_block.fourteen_days;
+                            blocks.halving.timestamp  = blocks.latest.timestamp + blocks.time_to.halving;
+                            blocks.retarget.timestamp = blocks.latest.timestamp + blocks.time_to.retarget;
+                            renderDOM();
+                          })
+                          .catch(err => console.warn('Something went wrong fetching mempool size', err));
+                        })
+                        .catch(err => console.warn('Something went wrong fetching avgblocksize', err));
+                      })
+                      .catch(err => console.warn('Something went wrong fetching stats', err))
+                    })
+                    .catch(err => console.warn('Something went wrong fetching fourteen block', err));
+                  })
+                  .catch(err => console.warn('Something went wrong fetching fourteen hash', err));
+                })
+                .catch(err => console.warn('Something went wrong fetching sixty days block', err));
+              })
+              .catch(err => console.warn('Something went wrong fetching sixty days hash', err));
+            })
+            .catch(err => console.warn('Something went wrong fetching latest block', err))
+          })
+          .catch(err => console.warn('Something went wrong fetching latest hash', err))
+        });
+      }
+
+      function renderDOM() {
+        populateHTML();
+        displayLastBlocks();
+      }
+
+      function populateHTML() {
+        // format date, show hour if less than one week
+        function shortDate(timestamp) {
+          const date = new Date(timestamp * 1000);
+          const show = date.toString().split(/\s\(/)[0];
+          const diff = date - Date.now();
+          const soon = 3 * 24 * 60 * 60 * 1000;
+          if (diff < soon) return show;
+          return show.split(/\s\d\d:/)[0];
+        }
+        // put commas and points on numbers
+        function prettyNumber(number, usd = false) {
+          const language = window.navigator.language;
+          const options = usd ? { style: 'currency', currency: 'USD' } : {};
+          return new Intl.NumberFormat(language, options).format(number);
+        }
+        // retarget triangle
+        function triangle() {
+          return blocks.avg_time_block.fourteen_days < 600 ? ' &uarr; ' : ' &darr; ';
+        }
+        // render data on halving
+        document.getElementById('halving-container').innerHTML = shortDate(blocks.halving.timestamp);
+        document.getElementById('latest-height').innerHTML = prettyNumber(blocks.latest.height);
+        document.getElementById('latest-timestamp').innerHTML = prettyNumber(blocks.latest.timestamp);
+        document.getElementById('distance-blocks').innerHTML = prettyNumber(blocks.distance.sixty_days) + ' blocks (~2 months)';
+        document.getElementById('from-height').innerHTML = prettyNumber(blocks.sixty_days.height) + ' <sup>a-c</sup>';
+        document.getElementById('from-timestamp').innerHTML = prettyNumber(blocks.sixty_days.timestamp);
+        document.getElementById('average-time').innerHTML = parseInt(blocks.avg_time_block.sixty_days) + ' seconds <sup>(b-d)/c</sup>';
+        document.getElementById('halving-blocks').innerHTML = prettyNumber(blocks.until.halving) + ` blocks <sup>${blocks.halving.height}-a</sup>`;
+        document.getElementById('halving-timestamp').innerHTML = prettyNumber(parseInt(blocks.halving.timestamp)) + ' <sup>b+e*f</sup>';
+        document.getElementById('halving-date').innerHTML = shortDate(blocks.halving.timestamp);
+        document.getElementById('n_blocks_total').innerHTML = prettyNumber(blocks.latest.height);
+        document.getElementById('last_block').setAttribute('href', `https://blockstream.info/block/${blocks.latest.hash}`);
+        // render data on retarget modal
+        document.getElementById('retarget-latest-height').innerHTML = prettyNumber(blocks.latest.height);
+        document.getElementById('retarget-latest-timestamp').innerHTML = prettyNumber(blocks.latest.timestamp);
+        document.getElementById('retarget-distance-blocks').innerHTML = prettyNumber(blocks.distance.fourteen_days) + ' blocks (~2 weeks)';
+        document.getElementById('retarget-from-height').innerHTML = prettyNumber(blocks.fourteen_days.height) + ' <sup>a-c</sup>';
+        document.getElementById('retarget-from-timestamp').innerHTML = prettyNumber(blocks.fourteen_days.timestamp);
+        document.getElementById('retarget-average-time').innerHTML = parseInt(blocks.avg_time_block.fourteen_days) + ' seconds <sup>(b-d)/c</sup>';
+        document.getElementById('retarget-blocks').innerHTML = prettyNumber(blocks.until.retarget) + ` blocks <sup>${blocks.retarget.height}-a</sup>`;
+        document.getElementById('retarget-timestamp').innerHTML = prettyNumber(parseInt(blocks.retarget.timestamp)) + ' <sup>b+e*f</sup>';
+        document.getElementById('retarget-date').innerHTML = shortDate(blocks.retarget.timestamp);
+        document.getElementById('nextretarget').innerHTML = prettyNumber(blocks.retarget.height) + triangle();
+        document.getElementById('nextretarget-eta').innerHTML = shortDate(blocks.retarget.timestamp);
+        // render stats
+        document.getElementById('market_price_usd').innerHTML = prettyNumber(blocks.stats.market_price_usd, 'usd');
+        document.getElementById('totalbc').innerHTML = prettyNumber(blocks.stats.totalbc/100000000);
+        document.getElementById('hash_rate').innerHTML = blocks.stats.hash_rate.toExponential(3);
+        document.getElementById('difficulty').innerHTML = blocks.stats.difficulty.toExponential(3);
+        document.getElementById('transactions').innerHTML = prettyNumber(blocks.stats.n_tx);
+        document.getElementById('block_size').innerHTML = blocks.stats.avgblocksize.toFixed(2) + ' MB';
+        document.getElementById('mempool').innerHTML = prettyNumber(blocks.stats.mempoolsize.y) + ' bytes';
+        // show countdown to halving
+        $('#countdown-container').css('visibility', 'visible');
+        // show more link
+        $('#halving').css('visibility', 'visible');
+      }
+
+      $(function() {
+        initDOM();
+        getFullData();
+        startTimers();
       });
     </script>
   </body>
