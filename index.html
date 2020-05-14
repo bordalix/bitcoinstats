@@ -749,9 +749,11 @@
           const options = usd ? { style: 'currency', currency: 'USD' } : {};
           return new Intl.NumberFormat(language, options).format(number);
         }
-        // retarget triangle
-        function triangle() {
-          return blocks.avg_time_block.fourteen_days < 600 ? ' &uarr; ' : ' &darr; ';
+        // retarget arrow
+        function arrow() {
+          if (blocks.avg_time_block.fourteen_days < 600) return ' &uarr; ';
+          if (blocks.avg_time_block.fourteen_days > 600) return ' &darr; ';
+          return ' = ';
         }
         // render data on halving
         document.getElementById('halving-container').innerHTML = shortDate(blocks.halving.timestamp);
@@ -776,7 +778,7 @@
         document.getElementById('retarget-blocks').innerHTML = prettyNumber(blocks.until.retarget) + ` blocks <sup>${blocks.retarget.height}-a</sup>`;
         document.getElementById('retarget-timestamp').innerHTML = prettyNumber(parseInt(blocks.retarget.timestamp)) + ' <sup>b+e*f</sup>';
         document.getElementById('retarget-date').innerHTML = shortDate(blocks.retarget.timestamp);
-        document.getElementById('nextretarget').innerHTML = prettyNumber(blocks.retarget.height) + triangle();
+        document.getElementById('nextretarget').innerHTML = prettyNumber(blocks.retarget.height) + arrow();
         document.getElementById('nextretarget-eta').innerHTML = shortDate(blocks.retarget.timestamp);
         // render stats
         document.getElementById('market_price_usd').innerHTML = prettyNumber(blocks.stats.market_price_usd, 'usd');
