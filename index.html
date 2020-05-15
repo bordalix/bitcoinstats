@@ -192,23 +192,23 @@
           <button class="delete" aria-label="close"></button>
         </header>
         <section class="modal-card-body">
-          <p>Using 2 weeks block time average</p>
+          <p>Since last retarget</p>
           <dl>
-            <dt>Latest block (a)</dt>
+            <dt>Next retarget (a)</dt>
+            <dd id="retarget-next-height"></dd>
+            <dt>Last block (b)</dt>
             <dd id="retarget-latest-height"></dd>
-            <dt>Timestamp (b)</dt>
+            <dt>Timestamp (c)</dt>
             <dd id="retarget-latest-timestamp"></dd>
-            <dt>Time ago</dt>
-            <dd id="retarget-latest-time-ago"></dd>
-            <dt>Distance (c)</dt>
-            <dd id="retarget-distance-blocks">2016 blocks (~2 weeks)</dd>
-            <dt>From block</dt>
-            <dd id="retarget-from-height"></dd>
-            <dt>Timestamp (d)</dt>
-            <dd id="retarget-from-timestamp"></dd>
-            <dt>Avg p/ block (e)</dt>
+            <dt>Last retarget (d)</dt>
+            <dd id="last-retarget-height"></dd>
+            <dt>Timestamp (e)</dt>
+            <dd id="last-retarget-timestamp"></dd>
+            <dt>Distance (f)</dt>
+            <dd id="retarget-distance-blocks"></dd>
+            <dt>Avg p/ block (g)</dt>
             <dd id="retarget-average-time"></dd>
-            <dt>To retarget (f)</dt>
+            <dt>To retarget (h)</dt>
             <dd id="retarget-blocks"></dd>
             <dt>Timestamp</dt>
             <dd id="retarget-timestamp"></dd>
@@ -363,21 +363,21 @@
           height: null,
           timestamp: null,
         },
-        fourteen_days: {
+        retarget: {
           height: null,
           timestamp: null,
         },
-        retarget: {
+        last_retarget: {
           height: null,
           timestamp: null,
         },
         avg_time_block: {
           sixty_days: null,
-          fourteen_days: null,
+          last_retarget: null,
         },
         distance: {
           sixty_days: 6 * 24 * 60,
-          fourteen_days:  6 * 24 * 14,
+          last_retarget: null,
         },
         until: {
           halving: null,
@@ -605,7 +605,6 @@
           seconds -= minutes * 60;
           const time_ago = minutes + 'm ' + seconds + 's';
           document.getElementById('latest-time-ago').innerHTML = time_ago;
-          document.getElementById('retarget-latest-time-ago').innerHTML = time_ago;
           return true;
         }
         // display network uptime
@@ -644,7 +643,10 @@
           url = 'https://blockstream.info/api';
           if (block === 'latest') return url + '/blocks/tip/height';
           if (block === 'sixty_days') return url + '/block-height/' + parseInt(blocks.latest.height - blocks.distance.sixty_days);
-          if (block === 'fourteen_days') return url + '/block-height/' + parseInt(blocks.latest.height - blocks.distance.fourteen_days);
+          if (block === 'last_retarget') return url + '/block-height/' + parseInt(blocks.retarget.height - 2016);
+          if (block === 'stats') return 'https://api.blockchain.info/stats';
+          if (block === 'blocksize') return 'https://api.blockchain.info/q/24hravgblocksize';
+          if (block === 'mempool') return 'https://api.blockchain.info/charts/mempool-size?timespan=1days&format=json&cors=true';
           if (block.length > 10) return url + '/block/' + block;
           return url + '/block-height/' + block;
         }
@@ -665,47 +667,47 @@
                 fetch(apiURL(sixty_days_hash))
                 .then(response => response.json())
                 .then(sixty_days => {
-                  fetch(apiURL('fourteen_days'))
-                  .then(response => response.text())
-                  .then(fourteen_days_hash => {
-                    fetch(apiURL(fourteen_days_hash))
-                    .then(response => response.json())
-                    .then(fourteen_days => {
-                      fetch('https://api.blockchain.info/stats')
+                  fetch(apiURL('stats'))
+                  .then(response => response.json())
+                  .then(stats => {
+                    blocks.retarget.height = stats.nextretarget;
+                    fetch(apiURL('last_retarget'))
+                    .then(response => response.text())
+                    .then(last_retarget_hash => {
+                      fetch(apiURL(last_retarget_hash))
                       .then(response => response.json())
-                      .then(stats => {
-                        fetch('https://api.blockchain.info/q/24hravgblocksize')
+                      .then(last_retarget => {
+                        fetch(apiURL('blocksize'))
                         .then(response => response.json())
                         .then(avgblocksize => {
-                          fetch('https://api.blockchain.info/charts/mempool-size?timespan=1days&format=json&cors=true')
+                          fetch(apiURL('mempool'))
                           .then(response => response.json())
                           .then(mempool => {
                             // stats
-                            blocks.stats.n_tx             = stats.n_tx;
-                            blocks.stats.totalbc          = stats.totalbc;
-                            blocks.stats.hash_rate        = stats.hash_rate;
-                            blocks.stats.difficulty       = stats.difficulty;
-                            blocks.stats.market_price_usd = stats.market_price_usd;
-                            blocks.stats.mempoolsize      = mempool.values.pop();
-                            blocks.stats.avgblocksize     = avgblocksize;
+                            blocks.stats.n_tx              = stats.n_tx;
+                            blocks.stats.totalbc           = stats.totalbc;
+                            blocks.stats.hash_rate         = stats.hash_rate;
+                            blocks.stats.difficulty        = stats.difficulty;
+                            blocks.stats.market_price_usd  = stats.market_price_usd;
+                            blocks.stats.mempoolsize       = mempool.values.pop();
+                            blocks.stats.avgblocksize      = avgblocksize;
                             // latest block
-                            blocks.latest.hash      = latest_hash;
-                            blocks.latest.timestamp = latest.timestamp;
+                            blocks.latest.hash             = latest_hash;
+                            blocks.latest.timestamp        = latest.timestamp;
+                            blocks.last_retarget.height    = last_retarget.height;
+                            blocks.last_retarget.timestamp = last_retarget.timestamp;
+                            blocks.distance.last_retarget  = blocks.latest.height - blocks.last_retarget.height;
                             // sixty days block
-                            blocks.sixty_days.height    = latest.height - blocks.distance.sixty_days;
-                            blocks.sixty_days.timestamp = sixty_days.timestamp;
-                            // fourteen days block
-                            blocks.fourteen_days.height    = latest.height - blocks.distance.fourteen_days;
-                            blocks.fourteen_days.timestamp = fourteen_days.timestamp;
+                            blocks.sixty_days.height       = latest.height - blocks.distance.sixty_days;
+                            blocks.sixty_days.timestamp    = sixty_days.timestamp;
                             // calculate average time per block
                             blocks.avg_time_block.sixty_days    = (blocks.latest.timestamp - blocks.sixty_days.timestamp)    / blocks.distance.sixty_days;
-                            blocks.avg_time_block.fourteen_days = (blocks.latest.timestamp - blocks.fourteen_days.timestamp) / blocks.distance.fourteen_days;
+                            blocks.avg_time_block.last_retarget = (blocks.latest.timestamp - blocks.last_retarget.timestamp) / blocks.distance.last_retarget;
                             // future blocks
-                            blocks.retarget.height    = stats.nextretarget;
                             blocks.until.halving      = blocks.halving.height   - blocks.latest.height;
                             blocks.until.retarget     = blocks.retarget.height  - blocks.latest.height;
                             blocks.time_to.halving    = blocks.until.halving    * blocks.avg_time_block.sixty_days;
-                            blocks.time_to.retarget   = blocks.until.retarget   * blocks.avg_time_block.fourteen_days;
+                            blocks.time_to.retarget   = blocks.until.retarget   * blocks.avg_time_block.last_retarget;
                             blocks.halving.timestamp  = blocks.latest.timestamp + blocks.time_to.halving;
                             blocks.retarget.timestamp = blocks.latest.timestamp + blocks.time_to.retarget;
                             renderDOM();
@@ -714,11 +716,11 @@
                         })
                         .catch(err => console.warn('Something went wrong fetching avgblocksize', err));
                       })
-                      .catch(err => console.warn('Something went wrong fetching stats', err))
+                      .catch(err => console.warn('Something went wrong fetching last retarget', err));
                     })
-                    .catch(err => console.warn('Something went wrong fetching fourteen block', err));
+                    .catch(err => console.warn('Something went wrong fetching last retarget hash', err));
                   })
-                  .catch(err => console.warn('Something went wrong fetching fourteen hash', err));
+                  .catch(err => console.warn('Something went wrong fetching stats', err))
                 })
                 .catch(err => console.warn('Something went wrong fetching sixty days block', err));
               })
@@ -753,8 +755,8 @@
         }
         // show difficulty movement
         function showDifficultyMovement(textual = false) {
-          if (blocks.avg_time_block.fourteen_days < 600) return (textual ? 'Will increase' : '') + ' &uarr; ';
-          if (blocks.avg_time_block.fourteen_days > 600) return (textual ? 'Will decrease' : '') + ' &darr; ';
+          if (blocks.avg_time_block.last_retarget < 600) return (textual ? 'Will increase' : '') + ' &uarr; ';
+          if (blocks.avg_time_block.last_retarget > 600) return (textual ? 'Will decrease' : '') + ' &darr; ';
           return (textual ? 'Will maintain' : '') + ' = ';
         }
         // render data on halving
@@ -773,16 +775,18 @@
         // render data on retarget modal
         document.getElementById('retarget-latest-height').innerHTML = prettyNumber(blocks.latest.height);
         document.getElementById('retarget-latest-timestamp').innerHTML = prettyNumber(blocks.latest.timestamp);
-        document.getElementById('retarget-distance-blocks').innerHTML = prettyNumber(blocks.distance.fourteen_days) + ' blocks (~2 weeks)';
-        document.getElementById('retarget-from-height').innerHTML = prettyNumber(blocks.fourteen_days.height) + ' <sup>a-c</sup>';
-        document.getElementById('retarget-from-timestamp').innerHTML = prettyNumber(blocks.fourteen_days.timestamp);
-        document.getElementById('retarget-average-time').innerHTML = parseInt(blocks.avg_time_block.fourteen_days) + ' seconds <sup>(b-d)/c</sup>';
-        document.getElementById('retarget-blocks').innerHTML = prettyNumber(blocks.until.retarget) + ` blocks <sup>${blocks.retarget.height}-a</sup>`;
-        document.getElementById('retarget-timestamp').innerHTML = prettyNumber(parseInt(blocks.retarget.timestamp)) + ' <sup>b+e*f</sup>';
-        document.getElementById('retarget-date').innerHTML = shortDate(blocks.retarget.timestamp);
+        document.getElementById('retarget-blocks').innerHTML = prettyNumber(blocks.until.retarget) + ` blocks <sup>a-b</sup>`;
         document.getElementById('retarget-movement').innerHTML = showDifficultyMovement(true);
         document.getElementById('nextretarget').innerHTML = prettyNumber(blocks.retarget.height) + showDifficultyMovement();
         document.getElementById('nextretarget-eta').innerHTML = shortDate(blocks.retarget.timestamp);
+
+        document.getElementById('retarget-next-height').innerHTML = prettyNumber(blocks.retarget.height);
+        document.getElementById('last-retarget-height').innerHTML = prettyNumber(blocks.last_retarget.height) + ' <sup>a-2016</sup>';
+        document.getElementById('retarget-distance-blocks').innerHTML = prettyNumber(blocks.distance.last_retarget) + ' <sup>b-d</sup>';
+        document.getElementById('last-retarget-timestamp').innerHTML = prettyNumber(blocks.last_retarget.timestamp);
+        document.getElementById('retarget-average-time').innerHTML = parseInt(blocks.avg_time_block.last_retarget) + ' seconds <sup>(c-e)/f</sup>';
+        document.getElementById('retarget-timestamp').innerHTML = prettyNumber(parseInt(blocks.retarget.timestamp)) + ' <sup>c+g*h</sup>';
+        document.getElementById('retarget-date').innerHTML = shortDate(blocks.retarget.timestamp);
         // render stats
         document.getElementById('market_price_usd').innerHTML = prettyNumber(blocks.stats.market_price_usd, 'usd');
         document.getElementById('totalbc').innerHTML = prettyNumber(blocks.stats.totalbc/100000000);
