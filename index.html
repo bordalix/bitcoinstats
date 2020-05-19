@@ -462,9 +462,9 @@
             return text;
           }
           // return a svg a element
-          function getAnchor(height) {
+          function getAnchor(hash) {
             const a = document.createElementNS(schema, "a");
-            a.setAttribute('href', `https://btc.com/block/${height}`);
+            a.setAttribute('href', `https://blockstream.info/block/${hash}`);
             return a;
           }
           // return a rectangle centered on coordinates passed
@@ -504,9 +504,9 @@
           lastBlocks.forEach((block) => {
             svg1.appendChild(getText(block.label, block.x - 4, 120, true));          // block height
             svg1.appendChild(getLine(block.x, block.y1, block.x, block.y2, '#aaa')); // block vertical line
-            const a = getAnchor(block.height)
+            const a = getAnchor(block.id)
             a.appendChild(getRect(block.x));
-            a.appendChild(getText(block.txCount + ' tx', block.x + 6, 230, true, '#fff'));
+            a.appendChild(getText(block.tx_count + ' tx', block.x + 6, 230, true, '#fff'));
             svg1.appendChild(a);
           });
           // put 'now' line
@@ -521,18 +521,23 @@
           svg1.appendChild(getLine(nowLine.x, nowLine.y1, nowLine.x, nowLine.y2, nowLine.color));
         }
         //
-        fetch('https://mempool.observer/api/recentBlocks')
+        fetch(`https://blockstream.info/api/blocks/${blocks.latest.height}`)
         .then(response => response.json())
         .then(json => {
           lastBlocks = json;
-          lastBlocks.forEach((block) => {
-            block.x = getXbyTimestamp(block.timestamp);
-            block.y1 = svg.height - 2 * svg.margin;
-            block.y2 = 30;
-            block.label = `block ${block.height}`;
-          })
-          calcTime();
-          drawSVG();
+          fetch(`https://blockstream.info/api/blocks/${blocks.latest.height - 10}`)
+          .then(response => response.json())
+          .then(json => {
+            lastBlocks = lastBlocks.concat(json);
+            lastBlocks.forEach((block) => {
+              block.x = getXbyTimestamp(block.timestamp);
+              block.y1 = svg.height - 2 * svg.margin;
+              block.y2 = 30;
+              block.label = `block ${block.height}`;
+            });
+            calcTime();
+            drawSVG();
+          });
         });
       }
       //
