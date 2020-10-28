@@ -544,8 +544,9 @@
       }
       //
       function manageWait() {
-        $('progress').attr('value', (10 - blocks.queries) * 10);
+        blocks.queries -= 1;
         if (blocks.queries == 0) $('progress').hide();
+        if (blocks.queries >= 0) $('progress').attr('value', (10 - blocks.queries) * 10);
       }
       function initDOM() {
         // add title
@@ -652,7 +653,6 @@
 
       function getFullData() {
         function apiURL(block) {
-          blocks.queries -= 1;
           manageWait();
           url = 'https://blockstream.info/api';
           if (block === 'latest') return url + '/blocks/tip/height';
