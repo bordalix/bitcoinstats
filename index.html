@@ -223,6 +223,7 @@
     <section class="section has-text-centered">
       <div class="container">
         <h1 class="title">Bitcoin stats</h1>
+        <p class="loading" style="margin-top: -1.5rem;">&nbsp;</p>
         <div class="tile is-ancestor is-vertical">
           <div class="tile">
             <div class="tile is-parent is-vertical">
@@ -395,7 +396,8 @@
           hash_rate: null,
           totalbc: null,
           n_tx: null,
-        }
+        },
+        queries: 10,
       };
       //
       function displayLastBlocks() {
@@ -541,7 +543,13 @@
         });
       }
       //
+      function manageWait() {
+        const title = blocks.queries > 0 ? `loading ${10 - blocks.queries}0%` : '&nbsp;';
+        $('p.loading').html(title);
+      }
       function initDOM() {
+        // add title
+        manageWait();
         // modal utils
         function openModal(domID) {
           history.pushState({}, '');
@@ -551,7 +559,6 @@
           $('.modal').removeClass('is-active');
           if (back) history.back();
         }
-
         window.addEventListener('popstate', () => closeModal(false));
         // hrefs were in place just for it to work without javascript
         // if javascript is enabled, show the modal instead
@@ -645,6 +652,8 @@
 
       function getFullData() {
         function apiURL(block) {
+          blocks.queries -= 1;
+          manageWait();
           url = 'https://blockstream.info/api';
           if (block === 'latest') return url + '/blocks/tip/height';
           if (block === 'sixty_days') return url + '/block-height/' + parseInt(blocks.latest.height - blocks.distance.sixty_days);
