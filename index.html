@@ -390,7 +390,7 @@
         },
         stats: {
           mempoolsize: null,
-          avgblocksize: null,
+          avgblocksize: 0,
           market_price_usd: null,
           difficulty: null,
           hash_rate: null,
@@ -691,44 +691,38 @@
                       fetch(apiURL(last_retarget_hash))
                       .then(response => response.json())
                       .then(last_retarget => {
-                        fetch(apiURL('blocksize'))
+                        fetch(apiURL('mempool'))
                         .then(response => response.json())
-                        .then(avgblocksize => {
-                          fetch(apiURL('mempool'))
-                          .then(response => response.json())
-                          .then(mempool => {
-                            // stats
-                            blocks.stats.n_tx              = stats.n_tx;
-                            blocks.stats.totalbc           = stats.totalbc;
-                            blocks.stats.hash_rate         = stats.hash_rate;
-                            blocks.stats.difficulty        = stats.difficulty;
-                            blocks.stats.market_price_usd  = stats.market_price_usd;
-                            blocks.stats.mempoolsize       = mempool.values.pop();
-                            blocks.stats.avgblocksize      = avgblocksize;
-                            // latest block
-                            blocks.latest.hash             = latest_hash;
-                            blocks.latest.timestamp        = latest.timestamp;
-                            blocks.last_retarget.height    = last_retarget.height;
-                            blocks.last_retarget.timestamp = last_retarget.timestamp;
-                            blocks.distance.last_retarget  = blocks.latest.height - blocks.last_retarget.height;
-                            // sixty days block
-                            blocks.sixty_days.height       = latest.height - blocks.distance.sixty_days;
-                            blocks.sixty_days.timestamp    = sixty_days.timestamp;
-                            // calculate average time per block
-                            blocks.avg_time_block.sixty_days    = (blocks.latest.timestamp - blocks.sixty_days.timestamp)    / blocks.distance.sixty_days;
-                            blocks.avg_time_block.last_retarget = (blocks.latest.timestamp - blocks.last_retarget.timestamp) / blocks.distance.last_retarget;
-                            // future blocks
-                            blocks.until.halving      = blocks.halving.height   - blocks.latest.height;
-                            blocks.until.retarget     = blocks.retarget.height  - blocks.latest.height;
-                            blocks.time_to.halving    = blocks.until.halving    * blocks.avg_time_block.sixty_days;
-                            blocks.time_to.retarget   = blocks.until.retarget   * blocks.avg_time_block.last_retarget;
-                            blocks.halving.timestamp  = blocks.latest.timestamp + blocks.time_to.halving;
-                            blocks.retarget.timestamp = blocks.latest.timestamp + blocks.time_to.retarget;
-                            renderDOM();
-                          })
-                          .catch(err => console.warn('Something went wrong fetching mempool size', err));
+                        .then(mempool => {
+                          // stats
+                          blocks.stats.n_tx              = stats.n_tx;
+                          blocks.stats.totalbc           = stats.totalbc;
+                          blocks.stats.hash_rate         = stats.hash_rate;
+                          blocks.stats.difficulty        = stats.difficulty;
+                          blocks.stats.market_price_usd  = stats.market_price_usd;
+                          blocks.stats.mempoolsize       = mempool.values.pop();
+                          // latest block
+                          blocks.latest.hash             = latest_hash;
+                          blocks.latest.timestamp        = latest.timestamp;
+                          blocks.last_retarget.height    = last_retarget.height;
+                          blocks.last_retarget.timestamp = last_retarget.timestamp;
+                          blocks.distance.last_retarget  = blocks.latest.height - blocks.last_retarget.height;
+                          // sixty days block
+                          blocks.sixty_days.height       = latest.height - blocks.distance.sixty_days;
+                          blocks.sixty_days.timestamp    = sixty_days.timestamp;
+                          // calculate average time per block
+                          blocks.avg_time_block.sixty_days    = (blocks.latest.timestamp - blocks.sixty_days.timestamp)    / blocks.distance.sixty_days;
+                          blocks.avg_time_block.last_retarget = (blocks.latest.timestamp - blocks.last_retarget.timestamp) / blocks.distance.last_retarget;
+                          // future blocks
+                          blocks.until.halving      = blocks.halving.height   - blocks.latest.height;
+                          blocks.until.retarget     = blocks.retarget.height  - blocks.latest.height;
+                          blocks.time_to.halving    = blocks.until.halving    * blocks.avg_time_block.sixty_days;
+                          blocks.time_to.retarget   = blocks.until.retarget   * blocks.avg_time_block.last_retarget;
+                          blocks.halving.timestamp  = blocks.latest.timestamp + blocks.time_to.halving;
+                          blocks.retarget.timestamp = blocks.latest.timestamp + blocks.time_to.retarget;
+                          renderDOM();
                         })
-                        .catch(err => console.warn('Something went wrong fetching avgblocksize', err));
+                        .catch(err => console.warn('Something went wrong fetching mempool size', err));
                       })
                       .catch(err => console.warn('Something went wrong fetching last retarget', err));
                     })
@@ -744,6 +738,11 @@
           })
           .catch(err => console.warn('Something went wrong fetching latest hash', err))
         });
+        // fetch avg block size
+        fetch(apiURL('blocksize'))
+        .then(response => response.json())
+        .then(avgblocksize => blocks.stats.avgblocksize = avgblocksize)
+        .catch(err => console.warn('Something went wrong fetching avgblocksize', err))
       }
 
       function renderDOM() {
