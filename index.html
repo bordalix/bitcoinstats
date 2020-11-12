@@ -231,7 +231,7 @@
                 <h2>Market price</h2>
                 <p id="market_price_usd"></p>
                 <noscript><span class="tag is-dark">Enable javascript</span></noscript>
-                <p><a href="https://trade.kraken.com/markets/kraken/btc/usd/1h">Live on Kraken</a></p>
+                <p><a href="https://www.coindesk.com/price/bitcoin">Live on Coindesk</a></p>
               </article>
               <article class="tile is-child box">
                 <h2>Next halving</h2>
@@ -579,7 +579,7 @@
         $('#mempool-show').click(() => openModal('#mempool-modal'));
         $('#retarget-show').click(() => openModal('#retarget-modal'));
         $('.delete').click(() => closeModal());
-        $('#market_price_usd').click(() => location.href = 'https://trade.kraken.com/markets/kraken/btc/usd/1h');
+        $('#market_price_usd').click(() => location.href = 'https://www.coindesk.com/price/bitcoin');
         $('#totalbc').click(() => location.href = 'https://blockchain.info/charts');
         $('#hash_rate').click(() => location.href = 'https://blockchain.info/charts');
         $('#nextretarget').click(() => location.href = 'https://blockchain.info/charts');
@@ -661,6 +661,7 @@
           if (block === 'stats') return 'https://api.blockchain.info/stats';
           if (block === 'blocksize') return 'https://api.blockchain.info/q/24hravgblocksize';
           if (block === 'mempool') return 'https://api.blockchain.info/charts/mempool-size?timespan=1days&format=json&cors=true';
+          if (block === 'usdprice') return 'https://api.coindesk.com/v1/bpi/currentprice.json';
           if (block.length > 10) return url + '/block/' + block;
           return url + '/block-height/' + block;
         }
@@ -694,33 +695,38 @@
                         fetch(apiURL('mempool'))
                         .then(response => response.json())
                         .then(mempool => {
-                          // stats
-                          blocks.stats.n_tx              = stats.n_tx;
-                          blocks.stats.totalbc           = stats.totalbc;
-                          blocks.stats.hash_rate         = stats.hash_rate;
-                          blocks.stats.difficulty        = stats.difficulty;
-                          blocks.stats.market_price_usd  = stats.market_price_usd;
-                          blocks.stats.mempoolsize       = mempool.values.pop();
-                          // latest block
-                          blocks.latest.hash             = latest_hash;
-                          blocks.latest.timestamp        = latest.timestamp;
-                          blocks.last_retarget.height    = last_retarget.height;
-                          blocks.last_retarget.timestamp = last_retarget.timestamp;
-                          blocks.distance.last_retarget  = blocks.latest.height - blocks.last_retarget.height;
-                          // sixty days block
-                          blocks.sixty_days.height       = latest.height - blocks.distance.sixty_days;
-                          blocks.sixty_days.timestamp    = sixty_days.timestamp;
-                          // calculate average time per block
-                          blocks.avg_time_block.sixty_days    = (blocks.latest.timestamp - blocks.sixty_days.timestamp)    / blocks.distance.sixty_days;
-                          blocks.avg_time_block.last_retarget = (blocks.latest.timestamp - blocks.last_retarget.timestamp) / blocks.distance.last_retarget;
-                          // future blocks
-                          blocks.until.halving      = blocks.halving.height   - blocks.latest.height;
-                          blocks.until.retarget     = blocks.retarget.height  - blocks.latest.height;
-                          blocks.time_to.halving    = blocks.until.halving    * blocks.avg_time_block.sixty_days;
-                          blocks.time_to.retarget   = blocks.until.retarget   * blocks.avg_time_block.last_retarget;
-                          blocks.halving.timestamp  = blocks.latest.timestamp + blocks.time_to.halving;
-                          blocks.retarget.timestamp = blocks.latest.timestamp + blocks.time_to.retarget;
-                          renderDOM();
+                          fetch(apiURL('usdprice'))
+                          .then(response => response.json())
+                          .then(usdprice => {
+                            // stats
+                            blocks.stats.n_tx              = stats.n_tx;
+                            blocks.stats.totalbc           = stats.totalbc;
+                            blocks.stats.hash_rate         = stats.hash_rate;
+                            blocks.stats.difficulty        = stats.difficulty;
+                            blocks.stats.market_price_usd  = usdprice.bpi.USD.rate_float;
+                            blocks.stats.mempoolsize       = mempool.values.pop();
+                            // latest block
+                            blocks.latest.hash             = latest_hash;
+                            blocks.latest.timestamp        = latest.timestamp;
+                            blocks.last_retarget.height    = last_retarget.height;
+                            blocks.last_retarget.timestamp = last_retarget.timestamp;
+                            blocks.distance.last_retarget  = blocks.latest.height - blocks.last_retarget.height;
+                            // sixty days block
+                            blocks.sixty_days.height       = latest.height - blocks.distance.sixty_days;
+                            blocks.sixty_days.timestamp    = sixty_days.timestamp;
+                            // calculate average time per block
+                            blocks.avg_time_block.sixty_days    = (blocks.latest.timestamp - blocks.sixty_days.timestamp)    / blocks.distance.sixty_days;
+                            blocks.avg_time_block.last_retarget = (blocks.latest.timestamp - blocks.last_retarget.timestamp) / blocks.distance.last_retarget;
+                            // future blocks
+                            blocks.until.halving      = blocks.halving.height   - blocks.latest.height;
+                            blocks.until.retarget     = blocks.retarget.height  - blocks.latest.height;
+                            blocks.time_to.halving    = blocks.until.halving    * blocks.avg_time_block.sixty_days;
+                            blocks.time_to.retarget   = blocks.until.retarget   * blocks.avg_time_block.last_retarget;
+                            blocks.halving.timestamp  = blocks.latest.timestamp + blocks.time_to.halving;
+                            blocks.retarget.timestamp = blocks.latest.timestamp + blocks.time_to.retarget;
+                            renderDOM();
+                          })
+                          .catch(err => console.warn('Something went wrong fetching usdprice', err));
                         })
                         .catch(err => console.warn('Something went wrong fetching mempool size', err));
                       })
