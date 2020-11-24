@@ -400,157 +400,13 @@
         queries: 10,
       };
       //
-      function displayLastBlocks() {
-        //
-        let lastBlocks;
-        const hourTicks = [];
-        const svg = { margin: 20, width: 1300, height: 320 };
-        const numOfPeriods = 7;
-        const secondsPerPeriod = 600;
-        const graphWidth = svg.width - 2 * svg.margin;
-        const secondsToPixels = (graphWidth / numOfPeriods) / secondsPerPeriod;
-        const now = parseInt(new Date().getTime() / 1000);
-        const lastTick = parseInt(now / secondsPerPeriod) * secondsPerPeriod;
-        const diffToNow = parseInt((now - lastTick));
-        //
-        function prettyDate(timestamp) {
-          const date = new Date(timestamp * 1000);
-          const minutes = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
-          return `${date.getHours()}:${minutes}`;
-        }
-        //
-        function getXbyTimestamp(timestamp) {
-          return parseInt(svg.width - svg.margin - (now - timestamp) * secondsToPixels);
-        }
-        //
-        function calcTime() {
-          for (let i = numOfPeriods; i >= 0; i--) {
-            const timestamp = lastTick - i * secondsPerPeriod;
-            hourTicks.push({
-              timestamp: timestamp,
-              pretty_date: prettyDate(timestamp),
-              x: getXbyTimestamp(timestamp),
-              y1: svg.height - svg.margin,
-              y2: svg.height - svg.margin * 2,
-            })
-          }
-        }
-        //
-        function drawSVG() {
-          const schema = 'http://www.w3.org/2000/svg';
-          // return a svg line
-          function getLine(x1, y1, x2, y2, color = '#000', width = 1) {
-            const line = document.createElementNS(schema, "line");
-            line.setAttribute('x1', x1);
-            line.setAttribute('y1', y1);
-            line.setAttribute('x2', x2);
-            line.setAttribute('y2', y2);
-            line.setAttribute('style', `stroke:${color}; stroke-width:${width};`);
-            return line;
-          }
-          // return a svg text
-          function getText(str, x, y, vertical = false, color = '#000') {
-            const text = document.createElementNS(schema, "text");
-            text.setAttribute('style', `font-size: 14px; fill: ${color}`);
-            text.textContent = str;
-            if (vertical) {
-              text.setAttribute('transform', `translate(${x},${y}) rotate(-90)`);
-            }
-            else {
-              text.setAttribute('x', x);
-              text.setAttribute('y', y);
-              text.setAttribute('text-anchor', 'middle');
-            }
-            return text;
-          }
-          // return a svg a element
-          function getAnchor(hash) {
-            const a = document.createElementNS(schema, "a");
-            a.setAttribute('href', `https://blockstream.info/block/${hash}`);
-            return a;
-          }
-          // return a rectangle centered on coordinates passed
-          function getRect(x1) {
-            const width = 40;
-            const height = 100;
-            const x = x1 - (width / 2);
-            const y = 150;
-            const rect = document.createElementNS(schema, "rect");
-            rect.setAttribute('x', x);
-            rect.setAttribute('y', y);
-            rect.setAttribute('width', width);
-            rect.setAttribute('height', height);
-            rect.setAttribute('style', 'fill:rgb(54,54,54)');
-            return rect;
-          }
-          // our svg
-          const svg1 = document.getElementById('lastBlocksSVG');
-          // remove all elements from svg
-          while (svg1.lastChild) svg1.removeChild(svg1.lastChild);
-          // make x axis
-          const x_axis = {
-            x1: svg.margin,
-            y1: svg.height - 2 * svg.margin,
-            x2: svg.margin + graphWidth,
-            y2: svg.height - 2 * svg.margin,
-          }
-          svg1.appendChild(getLine(x_axis.x1, x_axis.y1, x_axis.x2, x_axis.y2));
-          // put hour ticks on x axis
-          hourTicks.forEach((tick) => {
-            if (tick.x > 10) {
-              svg1.appendChild(getLine(tick.x, tick.y1, tick.x, tick.y2));      // hour marks
-              svg1.appendChild(getText(tick.pretty_date, tick.x, svg.height));  // hours
-            }
-          });
-          // put blocks
-          lastBlocks.forEach((block) => {
-            svg1.appendChild(getText(block.label, block.x - 4, 120, true));          // block height
-            svg1.appendChild(getLine(block.x, block.y1, block.x, block.y2, '#aaa')); // block vertical line
-            const a = getAnchor(block.id)
-            a.appendChild(getRect(block.x));
-            a.appendChild(getText(block.tx_count + ' tx', block.x + 6, 230, true, '#fff'));
-            svg1.appendChild(a);
-          });
-          // put 'now' line
-          const nowLine = {
-            x: svg.margin + graphWidth,
-            y1: svg.height - 2 * svg.margin,
-            y2: 35,
-            label: `now ${prettyDate(now)}`,
-            color: "#a00",
-          }
-          svg1.appendChild(getText(nowLine.label, nowLine.x + 13, nowLine.y2 + 65, true, nowLine.color));
-          svg1.appendChild(getLine(nowLine.x, nowLine.y1, nowLine.x, nowLine.y2, nowLine.color));
-        }
-        //
-        fetch(`https://blockstream.info/api/blocks/${blocks.latest.height}`)
-        .then(response => response.json())
-        .then(json => {
-          lastBlocks = json;
-          fetch(`https://blockstream.info/api/blocks/${blocks.latest.height - 10}`)
-          .then(response => response.json())
-          .then(json => {
-            lastBlocks = lastBlocks.concat(json);
-            lastBlocks.forEach((block) => {
-              block.x = getXbyTimestamp(block.timestamp);
-              block.y1 = svg.height - 2 * svg.margin;
-              block.y2 = 30;
-              block.label = `block ${block.height}`;
-            });
-            calcTime();
-            drawSVG();
-          });
-        });
-      }
-      //
       function manageWait() {
         blocks.queries -= 1;
         if (blocks.queries == 0) $('progress').hide();
         if (blocks.queries >= 0) $('progress').attr('value', (10 - blocks.queries) * 10);
       }
+      //
       function initDOM() {
-        // add title
-        manageWait();
         // modal utils
         function openModal(domID) {
           history.pushState({}, '');
@@ -650,8 +506,9 @@
           setInterval(getFullData, 60000);
         }, (60 - new Date().getSeconds()) *  1000);
       }
-
+      //
       function getFullData() {
+        // return API URL for given block
         function apiURL(block) {
           manageWait();
           url = 'https://blockstream.info/api';
@@ -665,162 +522,280 @@
           if (block.length > 10) return url + '/block/' + block;
           return url + '/block-height/' + block;
         }
-        // fetch latest block
-        fetch(apiURL('latest'))
-        .then(response => response.text())
-        .then(latest_height => {
-          blocks.latest.height = parseInt(latest_height);
-          fetch(apiURL(latest_height))
-          .then(response => response.text())
-          .then(latest_hash => {
-            fetch(apiURL(latest_hash))
-            .then(response => response.json())
-            .then(latest => {
-              fetch(apiURL('sixty_days'))
-              .then(response => response.text())
-              .then(sixty_days_hash => {
-                fetch(apiURL(sixty_days_hash))
-                .then(response => response.json())
-                .then(sixty_days => {
-                  fetch(apiURL('stats'))
-                  .then(response => response.json())
-                  .then(stats => {
-                    blocks.retarget.height = stats.nextretarget;
-                    fetch(apiURL('last_retarget'))
-                    .then(response => response.text())
-                    .then(last_retarget_hash => {
-                      fetch(apiURL(last_retarget_hash))
-                      .then(response => response.json())
-                      .then(last_retarget => {
-                        fetch(apiURL('mempool'))
-                        .then(response => response.json())
-                        .then(mempool => {
-                          fetch(apiURL('usdprice'))
-                          .then(response => response.json())
-                          .then(usdprice => {
-                            // stats
-                            blocks.stats.n_tx              = stats.n_tx;
-                            blocks.stats.totalbc           = stats.totalbc;
-                            blocks.stats.hash_rate         = stats.hash_rate;
-                            blocks.stats.difficulty        = stats.difficulty;
-                            blocks.stats.market_price_usd  = usdprice.bpi.USD.rate_float;
-                            blocks.stats.mempoolsize       = mempool.values.pop();
-                            // latest block
-                            blocks.latest.hash             = latest_hash;
-                            blocks.latest.timestamp        = latest.timestamp;
-                            blocks.last_retarget.height    = last_retarget.height;
-                            blocks.last_retarget.timestamp = last_retarget.timestamp;
-                            blocks.distance.last_retarget  = blocks.latest.height - blocks.last_retarget.height;
-                            // sixty days block
-                            blocks.sixty_days.height       = latest.height - blocks.distance.sixty_days;
-                            blocks.sixty_days.timestamp    = sixty_days.timestamp;
-                            // calculate average time per block
-                            blocks.avg_time_block.sixty_days    = (blocks.latest.timestamp - blocks.sixty_days.timestamp)    / blocks.distance.sixty_days;
-                            blocks.avg_time_block.last_retarget = (blocks.latest.timestamp - blocks.last_retarget.timestamp) / blocks.distance.last_retarget;
-                            // future blocks
-                            blocks.until.halving      = blocks.halving.height   - blocks.latest.height;
-                            blocks.until.retarget     = blocks.retarget.height  - blocks.latest.height;
-                            blocks.time_to.halving    = blocks.until.halving    * blocks.avg_time_block.sixty_days;
-                            blocks.time_to.retarget   = blocks.until.retarget   * blocks.avg_time_block.last_retarget;
-                            blocks.halving.timestamp  = blocks.latest.timestamp + blocks.time_to.halving;
-                            blocks.retarget.timestamp = blocks.latest.timestamp + blocks.time_to.retarget;
-                            renderDOM();
-                          })
-                          .catch(err => console.warn('Something went wrong fetching usdprice', err));
-                        })
-                        .catch(err => console.warn('Something went wrong fetching mempool size', err));
-                      })
-                      .catch(err => console.warn('Something went wrong fetching last retarget', err));
-                    })
-                    .catch(err => console.warn('Something went wrong fetching last retarget hash', err));
-                  })
-                  .catch(err => console.warn('Something went wrong fetching stats', err))
+        // render DOM
+        function renderDOM() {
+          function populateHTML() {
+            // format date, show hour if less than one week
+            function shortDate(timestamp) {
+              const date = new Date(timestamp * 1000);
+              const show = date.toString().split(/\s\(/)[0];
+              const diff = date - Date.now();
+              const soon = 3 * 24 * 60 * 60 * 1000;
+              if (diff < soon) return show;
+              return show.split(/\s\d\d:/)[0];
+            }
+            // put commas and points on numbers
+            function prettyNumber(number, usd = false) {
+              const language = window.navigator.language;
+              const options = usd ? { style: 'currency', currency: 'USD' } : {};
+              return new Intl.NumberFormat(language, options).format(number);
+            }
+            // show difficulty movement
+            function showDifficultyMovement(textual = false) {
+              if (blocks.avg_time_block.last_retarget < 600) return (textual ? 'Will increase' : '') + ' &uarr; ';
+              if (blocks.avg_time_block.last_retarget > 600) return (textual ? 'Will decrease' : '') + ' &darr; ';
+              return (textual ? 'Will maintain' : '') + ' = ';
+            }
+            // render data on halving
+            document.getElementById('halving-container').innerHTML = shortDate(blocks.halving.timestamp);
+            document.getElementById('latest-height').innerHTML = prettyNumber(blocks.latest.height);
+            document.getElementById('latest-timestamp').innerHTML = prettyNumber(blocks.latest.timestamp);
+            document.getElementById('distance-blocks').innerHTML = prettyNumber(blocks.distance.sixty_days) + ' blocks (~2 months)';
+            document.getElementById('from-height').innerHTML = prettyNumber(blocks.sixty_days.height) + ' <sup>a-c</sup>';
+            document.getElementById('from-timestamp').innerHTML = prettyNumber(blocks.sixty_days.timestamp);
+            document.getElementById('average-time').innerHTML = parseInt(blocks.avg_time_block.sixty_days) + ' seconds <sup>(b-d)/c</sup>';
+            document.getElementById('halving-blocks').innerHTML = prettyNumber(blocks.until.halving) + ` blocks <sup>${blocks.halving.height}-a</sup>`;
+            document.getElementById('halving-timestamp').innerHTML = prettyNumber(parseInt(blocks.halving.timestamp)) + ' <sup>b+e*f</sup>';
+            document.getElementById('halving-date').innerHTML = shortDate(blocks.halving.timestamp);
+            document.getElementById('n_blocks_total').innerHTML = prettyNumber(blocks.latest.height);
+            document.getElementById('last_block').setAttribute('href', `https://blockstream.info/block/${blocks.latest.hash}`);
+            // render data on retarget modal
+            document.getElementById('retarget-latest-height').innerHTML = prettyNumber(blocks.latest.height);
+            document.getElementById('retarget-latest-timestamp').innerHTML = prettyNumber(blocks.latest.timestamp);
+            document.getElementById('retarget-blocks').innerHTML = prettyNumber(blocks.until.retarget) + ` blocks <sup>a-b</sup>`;
+            document.getElementById('retarget-movement').innerHTML = showDifficultyMovement(true);
+            document.getElementById('nextretarget').innerHTML = prettyNumber(blocks.retarget.height) + showDifficultyMovement();
+            document.getElementById('nextretarget-eta').innerHTML = shortDate(blocks.retarget.timestamp);
+
+            document.getElementById('retarget-next-height').innerHTML = prettyNumber(blocks.retarget.height);
+            document.getElementById('last-retarget-height').innerHTML = prettyNumber(blocks.last_retarget.height) + ' <sup>a-2016</sup>';
+            document.getElementById('retarget-distance-blocks').innerHTML = prettyNumber(blocks.distance.last_retarget) + ' <sup>b-d</sup>';
+            document.getElementById('last-retarget-timestamp').innerHTML = prettyNumber(blocks.last_retarget.timestamp);
+            document.getElementById('retarget-average-time').innerHTML = parseInt(blocks.avg_time_block.last_retarget) + ' seconds <sup>(c-e)/f</sup>';
+            document.getElementById('retarget-timestamp').innerHTML = prettyNumber(parseInt(blocks.retarget.timestamp)) + ' <sup>c+g*h</sup>';
+            document.getElementById('retarget-date').innerHTML = shortDate(blocks.retarget.timestamp);
+            // render stats
+            document.getElementById('market_price_usd').innerHTML = prettyNumber(blocks.stats.market_price_usd, 'usd');
+            document.getElementById('totalbc').innerHTML = prettyNumber(blocks.stats.totalbc/100000000);
+            document.getElementById('hash_rate').innerHTML = blocks.stats.hash_rate.toExponential(3);
+            document.getElementById('difficulty').innerHTML = blocks.stats.difficulty.toExponential(3);
+            document.getElementById('transactions').innerHTML = prettyNumber(blocks.stats.n_tx);
+            document.getElementById('block_size').innerHTML = blocks.stats.avgblocksize.toFixed(2) + ' MB';
+            document.getElementById('mempool').innerHTML = prettyNumber(blocks.stats.mempoolsize.y) + ' bytes';
+            // show countdown to halving
+            $('#countdown-container').css('visibility', 'visible');
+            // show more link
+            $('#halving').css('visibility', 'visible');
+          }
+          function displayLastBlocks() {
+            //
+            let lastBlocks;
+            const hourTicks = [];
+            const svg = { margin: 20, width: 1300, height: 320 };
+            const numOfPeriods = 7;
+            const secondsPerPeriod = 600;
+            const graphWidth = svg.width - 2 * svg.margin;
+            const secondsToPixels = (graphWidth / numOfPeriods) / secondsPerPeriod;
+            const now = parseInt(new Date().getTime() / 1000);
+            const lastTick = parseInt(now / secondsPerPeriod) * secondsPerPeriod;
+            const diffToNow = parseInt((now - lastTick));
+            //
+            function prettyDate(timestamp) {
+              const date = new Date(timestamp * 1000);
+              const minutes = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+              return `${date.getHours()}:${minutes}`;
+            }
+            //
+            function getXbyTimestamp(timestamp) {
+              return parseInt(svg.width - svg.margin - (now - timestamp) * secondsToPixels);
+            }
+            //
+            function calcTime() {
+              for (let i = numOfPeriods; i >= 0; i--) {
+                const timestamp = lastTick - i * secondsPerPeriod;
+                hourTicks.push({
+                  timestamp: timestamp,
+                  pretty_date: prettyDate(timestamp),
+                  x: getXbyTimestamp(timestamp),
+                  y1: svg.height - svg.margin,
+                  y2: svg.height - svg.margin * 2,
                 })
-                .catch(err => console.warn('Something went wrong fetching sixty days block', err));
-              })
-              .catch(err => console.warn('Something went wrong fetching sixty days hash', err));
-            })
-            .catch(err => console.warn('Something went wrong fetching latest block', err))
-          })
-          .catch(err => console.warn('Something went wrong fetching latest hash', err))
-        });
-        // fetch avg block size
-        fetch(apiURL('blocksize'))
-        .then(response => response.json())
-        .then(avgblocksize => blocks.stats.avgblocksize = avgblocksize)
-        .catch(err => console.warn('Something went wrong fetching avgblocksize', err))
-      }
-
-      function renderDOM() {
-        populateHTML();
-        displayLastBlocks();
-      }
-
-      function populateHTML() {
-        // format date, show hour if less than one week
-        function shortDate(timestamp) {
-          const date = new Date(timestamp * 1000);
-          const show = date.toString().split(/\s\(/)[0];
-          const diff = date - Date.now();
-          const soon = 3 * 24 * 60 * 60 * 1000;
-          if (diff < soon) return show;
-          return show.split(/\s\d\d:/)[0];
+              }
+            }
+            //
+            function drawSVG() {
+              const schema = 'http://www.w3.org/2000/svg';
+              // return a svg line
+              function getLine(x1, y1, x2, y2, color = '#000', width = 1) {
+                const line = document.createElementNS(schema, "line");
+                line.setAttribute('x1', x1);
+                line.setAttribute('y1', y1);
+                line.setAttribute('x2', x2);
+                line.setAttribute('y2', y2);
+                line.setAttribute('style', `stroke:${color}; stroke-width:${width};`);
+                return line;
+              }
+              // return a svg text
+              function getText(str, x, y, vertical = false, color = '#000') {
+                const text = document.createElementNS(schema, "text");
+                text.setAttribute('style', `font-size: 14px; fill: ${color}`);
+                text.textContent = str;
+                if (vertical) {
+                  text.setAttribute('transform', `translate(${x},${y}) rotate(-90)`);
+                }
+                else {
+                  text.setAttribute('x', x);
+                  text.setAttribute('y', y);
+                  text.setAttribute('text-anchor', 'middle');
+                }
+                return text;
+              }
+              // return a svg a element
+              function getAnchor(hash) {
+                const a = document.createElementNS(schema, "a");
+                a.setAttribute('href', `https://blockstream.info/block/${hash}`);
+                return a;
+              }
+              // return a rectangle centered on coordinates passed
+              function getRect(x1) {
+                const width = 40;
+                const height = 100;
+                const x = x1 - (width / 2);
+                const y = 150;
+                const rect = document.createElementNS(schema, "rect");
+                rect.setAttribute('x', x);
+                rect.setAttribute('y', y);
+                rect.setAttribute('width', width);
+                rect.setAttribute('height', height);
+                rect.setAttribute('style', 'fill:rgb(54,54,54)');
+                return rect;
+              }
+              // our svg
+              const svg1 = document.getElementById('lastBlocksSVG');
+              // remove all elements from svg
+              while (svg1.lastChild) svg1.removeChild(svg1.lastChild);
+              // make x axis
+              const x_axis = {
+                x1: svg.margin,
+                y1: svg.height - 2 * svg.margin,
+                x2: svg.margin + graphWidth,
+                y2: svg.height - 2 * svg.margin,
+              }
+              svg1.appendChild(getLine(x_axis.x1, x_axis.y1, x_axis.x2, x_axis.y2));
+              // put hour ticks on x axis
+              hourTicks.forEach((tick) => {
+                if (tick.x > 10) {
+                  svg1.appendChild(getLine(tick.x, tick.y1, tick.x, tick.y2));      // hour marks
+                  svg1.appendChild(getText(tick.pretty_date, tick.x, svg.height));  // hours
+                }
+              });
+              // put blocks
+              lastBlocks.forEach((block) => {
+                svg1.appendChild(getText(block.label, block.x - 4, 120, true));          // block height
+                svg1.appendChild(getLine(block.x, block.y1, block.x, block.y2, '#aaa')); // block vertical line
+                const a = getAnchor(block.id)
+                a.appendChild(getRect(block.x));
+                a.appendChild(getText(block.tx_count + ' tx', block.x + 6, 230, true, '#fff'));
+                svg1.appendChild(a);
+              });
+              // put 'now' line
+              const nowLine = {
+                x: svg.margin + graphWidth,
+                y1: svg.height - 2 * svg.margin,
+                y2: 35,
+                label: `now ${prettyDate(now)}`,
+                color: "#a00",
+              }
+              svg1.appendChild(getText(nowLine.label, nowLine.x + 13, nowLine.y2 + 65, true, nowLine.color));
+              svg1.appendChild(getLine(nowLine.x, nowLine.y1, nowLine.x, nowLine.y2, nowLine.color));
+            }
+            //
+            async function fetchLastBlocks() {
+              let response = await fetch(`https://blockstream.info/api/blocks/${blocks.latest.height}`);
+              lastBlocks = await response.json();
+              response = await fetch(`https://blockstream.info/api/blocks/${blocks.latest.height - 10}`);
+              lastBlocks = lastBlocks.concat(await response.json());
+              lastBlocks.forEach((block) => {
+                block.x = getXbyTimestamp(block.timestamp);
+                block.y1 = svg.height - 2 * svg.margin;
+                block.y2 = 30;
+                block.label = `block ${block.height}`;
+              });
+              calcTime();
+              drawSVG();
+            }
+            fetchLastBlocks()
+            .catch(e => console.log('Error: ' + e.message));
+          }
+          populateHTML();
+          displayLastBlocks();
         }
-        // put commas and points on numbers
-        function prettyNumber(number, usd = false) {
-          const language = window.navigator.language;
-          const options = usd ? { style: 'currency', currency: 'USD' } : {};
-          return new Intl.NumberFormat(language, options).format(number);
+        // fetch all data and render DOM
+        async function fetchData() {
+          // get latest block
+          let response = await fetch(apiURL('latest'));
+          blocks.latest.height = parseInt(await response.text());
+          response = await fetch(apiURL(blocks.latest.height));
+          const latest_hash = await response.text();
+          response = await fetch(apiURL(latest_hash));
+          const latest = await response.json();
+          // get block 2 months ago
+          response = await fetch(apiURL('sixty_days'));
+          const sixty_days_hash = await response.text();
+          response = await fetch(apiURL(sixty_days_hash));
+          const sixty_days = await response.json();
+          // get stats
+          response = await fetch(apiURL('stats'));
+          const stats = await response.json();
+          blocks.retarget.height = stats.nextretarget;
+          // get last retarget
+          response = await fetch(apiURL('last_retarget'));
+          const last_retarget_hash = await response.text();
+          response = await fetch(apiURL(last_retarget_hash));
+          const last_retarget = await response.json();
+          // get mempool
+          response = await fetch(apiURL('mempool'));
+          const mempool = await response.json();
+          // get usd price
+          response = await fetch(apiURL('usdprice'));
+          const usdprice = await response.json();
+          // get average block size
+          response = await fetch(apiURL('blocksize'));
+          blocks.stats.avgblocksize = await response.json();
+          // stats
+          blocks.stats.n_tx              = stats.n_tx;
+          blocks.stats.totalbc           = stats.totalbc;
+          blocks.stats.hash_rate         = stats.hash_rate;
+          blocks.stats.difficulty        = stats.difficulty;
+          blocks.stats.market_price_usd  = usdprice.bpi.USD.rate_float;
+          blocks.stats.mempoolsize       = mempool.values.pop();
+          // latest block
+          blocks.latest.hash             = latest_hash;
+          blocks.latest.timestamp        = latest.timestamp;
+          blocks.last_retarget.height    = last_retarget.height;
+          blocks.last_retarget.timestamp = last_retarget.timestamp;
+          blocks.distance.last_retarget  = blocks.latest.height - blocks.last_retarget.height;
+          // sixty days block
+          blocks.sixty_days.height       = latest.height - blocks.distance.sixty_days;
+          blocks.sixty_days.timestamp    = sixty_days.timestamp;
+          // calculate average time per block
+          blocks.avg_time_block.sixty_days    = (blocks.latest.timestamp - blocks.sixty_days.timestamp)    / blocks.distance.sixty_days;
+          blocks.avg_time_block.last_retarget = (blocks.latest.timestamp - blocks.last_retarget.timestamp) / blocks.distance.last_retarget;
+          // future blocks
+          blocks.until.halving      = blocks.halving.height   - blocks.latest.height;
+          blocks.until.retarget     = blocks.retarget.height  - blocks.latest.height;
+          blocks.time_to.halving    = blocks.until.halving    * blocks.avg_time_block.sixty_days;
+          blocks.time_to.retarget   = blocks.until.retarget   * blocks.avg_time_block.last_retarget;
+          blocks.halving.timestamp  = blocks.latest.timestamp + blocks.time_to.halving;
+          blocks.retarget.timestamp = blocks.latest.timestamp + blocks.time_to.retarget;
+          renderDOM();
         }
-        // show difficulty movement
-        function showDifficultyMovement(textual = false) {
-          if (blocks.avg_time_block.last_retarget < 600) return (textual ? 'Will increase' : '') + ' &uarr; ';
-          if (blocks.avg_time_block.last_retarget > 600) return (textual ? 'Will decrease' : '') + ' &darr; ';
-          return (textual ? 'Will maintain' : '') + ' = ';
-        }
-        // render data on halving
-        document.getElementById('halving-container').innerHTML = shortDate(blocks.halving.timestamp);
-        document.getElementById('latest-height').innerHTML = prettyNumber(blocks.latest.height);
-        document.getElementById('latest-timestamp').innerHTML = prettyNumber(blocks.latest.timestamp);
-        document.getElementById('distance-blocks').innerHTML = prettyNumber(blocks.distance.sixty_days) + ' blocks (~2 months)';
-        document.getElementById('from-height').innerHTML = prettyNumber(blocks.sixty_days.height) + ' <sup>a-c</sup>';
-        document.getElementById('from-timestamp').innerHTML = prettyNumber(blocks.sixty_days.timestamp);
-        document.getElementById('average-time').innerHTML = parseInt(blocks.avg_time_block.sixty_days) + ' seconds <sup>(b-d)/c</sup>';
-        document.getElementById('halving-blocks').innerHTML = prettyNumber(blocks.until.halving) + ` blocks <sup>${blocks.halving.height}-a</sup>`;
-        document.getElementById('halving-timestamp').innerHTML = prettyNumber(parseInt(blocks.halving.timestamp)) + ' <sup>b+e*f</sup>';
-        document.getElementById('halving-date').innerHTML = shortDate(blocks.halving.timestamp);
-        document.getElementById('n_blocks_total').innerHTML = prettyNumber(blocks.latest.height);
-        document.getElementById('last_block').setAttribute('href', `https://blockstream.info/block/${blocks.latest.hash}`);
-        // render data on retarget modal
-        document.getElementById('retarget-latest-height').innerHTML = prettyNumber(blocks.latest.height);
-        document.getElementById('retarget-latest-timestamp').innerHTML = prettyNumber(blocks.latest.timestamp);
-        document.getElementById('retarget-blocks').innerHTML = prettyNumber(blocks.until.retarget) + ` blocks <sup>a-b</sup>`;
-        document.getElementById('retarget-movement').innerHTML = showDifficultyMovement(true);
-        document.getElementById('nextretarget').innerHTML = prettyNumber(blocks.retarget.height) + showDifficultyMovement();
-        document.getElementById('nextretarget-eta').innerHTML = shortDate(blocks.retarget.timestamp);
-
-        document.getElementById('retarget-next-height').innerHTML = prettyNumber(blocks.retarget.height);
-        document.getElementById('last-retarget-height').innerHTML = prettyNumber(blocks.last_retarget.height) + ' <sup>a-2016</sup>';
-        document.getElementById('retarget-distance-blocks').innerHTML = prettyNumber(blocks.distance.last_retarget) + ' <sup>b-d</sup>';
-        document.getElementById('last-retarget-timestamp').innerHTML = prettyNumber(blocks.last_retarget.timestamp);
-        document.getElementById('retarget-average-time').innerHTML = parseInt(blocks.avg_time_block.last_retarget) + ' seconds <sup>(c-e)/f</sup>';
-        document.getElementById('retarget-timestamp').innerHTML = prettyNumber(parseInt(blocks.retarget.timestamp)) + ' <sup>c+g*h</sup>';
-        document.getElementById('retarget-date').innerHTML = shortDate(blocks.retarget.timestamp);
-        // render stats
-        document.getElementById('market_price_usd').innerHTML = prettyNumber(blocks.stats.market_price_usd, 'usd');
-        document.getElementById('totalbc').innerHTML = prettyNumber(blocks.stats.totalbc/100000000);
-        document.getElementById('hash_rate').innerHTML = blocks.stats.hash_rate.toExponential(3);
-        document.getElementById('difficulty').innerHTML = blocks.stats.difficulty.toExponential(3);
-        document.getElementById('transactions').innerHTML = prettyNumber(blocks.stats.n_tx);
-        document.getElementById('block_size').innerHTML = blocks.stats.avgblocksize.toFixed(2) + ' MB';
-        document.getElementById('mempool').innerHTML = prettyNumber(blocks.stats.mempoolsize.y) + ' bytes';
-        // show countdown to halving
-        $('#countdown-container').css('visibility', 'visible');
-        // show more link
-        $('#halving').css('visibility', 'visible');
+        fetchData()
+        .catch(e => console.log('Error:', e.message));
       }
-
+      // fire when ready
       $(function() {
+        manageWait();
         initDOM();
         getFullData();
         startTimers();
