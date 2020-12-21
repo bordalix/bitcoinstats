@@ -535,10 +535,12 @@
               return show.split(/\s\d\d:/)[0];
             }
             // put commas and points on numbers
-            function prettyNumber(number, usd = false) {
+            function prettyNumber(number, suffix = '', usd = false) {
+              if (number == undefined) return '?';
+              if (suffix) suffix = ' ' + suffix;
               const language = window.navigator.language;
               const options = usd ? { style: 'currency', currency: 'USD' } : {};
-              return new Intl.NumberFormat(language, options).format(number);
+              return new Intl.NumberFormat(language, options).format(number) + suffix;
             }
             // show difficulty movement
             function showDifficultyMovement(textual = false) {
@@ -550,11 +552,11 @@
             document.getElementById('halving-container').innerHTML = shortDate(blocks.halving.timestamp);
             document.getElementById('latest-height').innerHTML = prettyNumber(blocks.latest.height);
             document.getElementById('latest-timestamp').innerHTML = prettyNumber(blocks.latest.timestamp);
-            document.getElementById('distance-blocks').innerHTML = prettyNumber(blocks.distance.sixty_days) + ' blocks (~2 months)';
+            document.getElementById('distance-blocks').innerHTML = prettyNumber(blocks.distance.sixty_days, 'blocks (~2 months)');
             document.getElementById('from-height').innerHTML = prettyNumber(blocks.sixty_days.height) + ' <sup>a-c</sup>';
             document.getElementById('from-timestamp').innerHTML = prettyNumber(blocks.sixty_days.timestamp);
-            document.getElementById('average-time').innerHTML = parseInt(blocks.avg_time_block.sixty_days) + ' seconds <sup>(b-d)/c</sup>';
-            document.getElementById('halving-blocks').innerHTML = prettyNumber(blocks.until.halving) + ` blocks <sup>${blocks.halving.height}-a</sup>`;
+            document.getElementById('average-time').innerHTML = parseInt(blocks.avg_time_block.sixty_days, 'seconds') + ' <sup>(b-d)/c</sup>';
+            document.getElementById('halving-blocks').innerHTML = prettyNumber(blocks.until.halving, 'blocks') + ` <sup>${blocks.halving.height}-a</sup>`;
             document.getElementById('halving-timestamp').innerHTML = prettyNumber(parseInt(blocks.halving.timestamp)) + ' <sup>b+e*f</sup>';
             document.getElementById('halving-date').innerHTML = shortDate(blocks.halving.timestamp);
             document.getElementById('n_blocks_total').innerHTML = prettyNumber(blocks.latest.height);
@@ -562,7 +564,7 @@
             // render data on retarget modal
             document.getElementById('retarget-latest-height').innerHTML = prettyNumber(blocks.latest.height);
             document.getElementById('retarget-latest-timestamp').innerHTML = prettyNumber(blocks.latest.timestamp);
-            document.getElementById('retarget-blocks').innerHTML = prettyNumber(blocks.until.retarget) + ` blocks <sup>a-b</sup>`;
+            document.getElementById('retarget-blocks').innerHTML = prettyNumber(blocks.until.retarget, 'blocks') + ` <sup>a-b</sup>`;
             document.getElementById('retarget-movement').innerHTML = showDifficultyMovement(true);
             document.getElementById('nextretarget').innerHTML = prettyNumber(blocks.retarget.height) + showDifficultyMovement();
             document.getElementById('nextretarget-eta').innerHTML = shortDate(blocks.retarget.timestamp);
@@ -571,17 +573,17 @@
             document.getElementById('last-retarget-height').innerHTML = prettyNumber(blocks.last_retarget.height) + ' <sup>a-2016</sup>';
             document.getElementById('retarget-distance-blocks').innerHTML = prettyNumber(blocks.distance.last_retarget) + ' <sup>b-d</sup>';
             document.getElementById('last-retarget-timestamp').innerHTML = prettyNumber(blocks.last_retarget.timestamp);
-            document.getElementById('retarget-average-time').innerHTML = parseInt(blocks.avg_time_block.last_retarget) + ' seconds <sup>(c-e)/f</sup>';
+            document.getElementById('retarget-average-time').innerHTML = parseInt(blocks.avg_time_block.last_retarget, 'seconds') + ' <sup>(c-e)/f</sup>';
             document.getElementById('retarget-timestamp').innerHTML = prettyNumber(parseInt(blocks.retarget.timestamp)) + ' <sup>c+g*h</sup>';
             document.getElementById('retarget-date').innerHTML = shortDate(blocks.retarget.timestamp);
             // render stats
-            document.getElementById('market_price_usd').innerHTML = prettyNumber(blocks.stats.market_price_usd, 'usd');
+            document.getElementById('market_price_usd').innerHTML = prettyNumber(blocks.stats.market_price_usd, '', 'usd');
             document.getElementById('totalbc').innerHTML = prettyNumber(blocks.stats.totalbc/100000000);
             document.getElementById('hash_rate').innerHTML = blocks.stats.hash_rate.toExponential(3);
             document.getElementById('difficulty').innerHTML = blocks.stats.difficulty.toExponential(3);
             document.getElementById('transactions').innerHTML = prettyNumber(blocks.stats.n_tx);
             document.getElementById('block_size').innerHTML = blocks.stats.avgblocksize.toFixed(2) + ' MB';
-            document.getElementById('mempool').innerHTML = prettyNumber(blocks.stats.mempoolsize.y) + ' bytes';
+            document.getElementById('mempool').innerHTML = prettyNumber(blocks.stats.mempoolsize?.y, 'bytes');
             // show countdown to halving
             $('#countdown-container').css('visibility', 'visible');
             // show more link
