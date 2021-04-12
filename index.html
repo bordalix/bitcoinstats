@@ -38,7 +38,7 @@
           <button class="delete" aria-label="close"></button>
         </header>
         <section class="modal-card-body">
-          <p>via <a href="https://www.blockchain.com/charts/mempool-size">https://blockchain.info</a></p>
+          <p>1 week via <a href="https://www.blockchain.com/charts/mempool-size">https://blockchain.info</a></p>
           <img src="https://api.blockchain.info/charts/thumbnail/mempool-size.png">
         </section>
       </div>
@@ -51,7 +51,7 @@
           <button class="delete" aria-label="close"></button>
         </header>
         <section class="modal-card-body">
-          <p>via <a href="https://www.blockchain.com/charts/n-transactions">https://www.blockchain.com/</a></p>
+          <p>1 year via <a href="https://www.blockchain.com/charts/n-transactions">https://www.blockchain.com/</a></p>
           <img src="https://api.blockchain.info/charts/thumbnail/n-transactions.png">
         </section>
       </div>
@@ -77,8 +77,21 @@
           <button class="delete" aria-label="close"></button>
         </header>
         <section class="modal-card-body">
-          <p>via <a href="https://www.blockchain.com/charts/hash-rate">https://blockchain.info</a></p>
+          <p>1 year via <a href="https://www.blockchain.com/charts/hash-rate">https://blockchain.info</a></p>
           <img src="https://api.blockchain.info/charts/thumbnail/hash-rate.png">
+        </section>
+      </div>
+    </div>
+    <div id="blocksize-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Block size</p>
+          <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+          <p>1 year via <a href="https://www.blockchain.com/charts/avg-block-size">https://blockchain.info</a></p>
+          <img src="https://api.blockchain.info/charts/thumbnail/avg-block-size.png">
         </section>
       </div>
     </div>
@@ -302,6 +315,7 @@
                 <p id="block_size"></p>
                 <noscript><span class="tag is-dark">Enable javascript</span></noscript>
                 <p>Average last 24 hours</p>
+                <p><a id="blocksize-show" href="https://api.blockchain.info/charts/thumbnail/avg-block-size.png">See graph</a></p>
               </article>
               <article class="tile is-child box">
                 <h2>Total blocks</h2>
@@ -421,15 +435,18 @@
         // if javascript is enabled, show the modal instead
         $('#CVE-2010-5139').removeAttr('href');
         $('#CVE-2013-3220').removeAttr('href');
+        $('#halving-show').removeAttr('href');
         $('#hashrate-show').removeAttr('href');
-        $('#hashrate-show').removeAttr('href');
+        $('#blocksize-show').removeAttr('href');
         $('#difficulty-show').removeAttr('href');
         $('#transactions-show').removeAttr('href');
         $('#mempool-show').removeAttr('href');
+        $('#retarget-show').removeAttr('href');
         $('#CVE-2010-5139').click(() => openModal('#CVE-2010-5139-modal'));
         $('#CVE-2013-3220').click(() => openModal('#CVE-2013-3220-modal'));
         $('#halving-show').click(() => openModal('#halving-modal'));
         $('#hashrate-show').click(() => openModal('#hashrate-modal'));
+        $('#blocksize-show').click(() => openModal('#blocksize-modal'));
         $('#difficulty-show').click(() => openModal('#difficulty-modal'));
         $('#transactions-show').click(() => openModal('#transactions-modal'));
         $('#mempool-show').click(() => openModal('#mempool-modal'));
@@ -669,7 +686,7 @@
                 rect.setAttribute('y', y);
                 rect.setAttribute('width', width);
                 rect.setAttribute('height', height);
-                rect.setAttribute('style', 'fill:rgb(54,54,54)');
+                rect.setAttribute('style', 'fill:#ddd;stroke-width:1;stroke:#000');
                 return rect;
               }
               // our svg
@@ -694,10 +711,10 @@
               // put blocks
               lastBlocks.forEach((block) => {
                 svg1.appendChild(getText(block.label, block.x - 4, 120, true));          // block height
-                svg1.appendChild(getLine(block.x, block.y1, block.x, block.y2, '#aaa')); // block vertical line
+                svg1.appendChild(getLine(block.x, block.y1, block.x, block.y2, '#000')); // block vertical line
                 const a = getAnchor(block.id)
                 a.appendChild(getRect(block.x));
-                a.appendChild(getText(block.tx_count + ' tx', block.x + 6, 230, true, '#fff'));
+                a.appendChild(getText(block.tx_count + ' tx', block.x + 6, 230, true, '#3273dc'));
                 svg1.appendChild(a);
               });
               // put 'now' line
