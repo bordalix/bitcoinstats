@@ -541,6 +541,16 @@
           if (block.length > 10) return url + '/block/' + block;
           return url + '/block-height/' + block;
         }
+        // fetch from API
+        async function myFetch(url) {
+          try {
+            const response = await fetch(url);
+            return await response.json();
+          }
+          catch {
+            return null;
+          }
+        }
         // render DOM
         function renderDOM() {
           function populateHTML() {
@@ -601,7 +611,7 @@
             document.getElementById('hash_rate').innerHTML = blocks.stats.hash_rate.toExponential(3);
             document.getElementById('difficulty').innerHTML = blocks.stats.difficulty.toExponential(3);
             document.getElementById('transactions').innerHTML = prettyNumber(blocks.stats.n_tx);
-            document.getElementById('block_size').innerHTML = blocks.stats.avgblocksize.toFixed(2) + ' MB';
+            document.getElementById('block_size').innerHTML = blocks.stats.avgblocksize?.toFixed(2) + ' MB';
             document.getElementById('mempool').innerHTML = prettyNumber(blocks.stats.mempoolsize?.y, 'bytes');
             // show countdown to halving
             $('#countdown-container').css('visibility', 'visible');
@@ -732,10 +742,8 @@
             }
             //
             async function fetchLastBlocks() {
-              let response = await fetch(`https://blockstream.info/api/blocks/${blocks.latest.height}`);
-              lastBlocks = await response.json();
-              response = await fetch(`https://blockstream.info/api/blocks/${blocks.latest.height - 10}`);
-              lastBlocks = lastBlocks.concat(await response.json());
+              lastBlocks = await myFetch(`https://blockstream.info/api/blocks/${blocks.latest.height}`);
+              lastBlocks = lastBlocks?.concat(await myFetch(`https://blockstream.info/api/blocks/${blocks.latest.height - 10}`));
               lastBlocks.forEach((block) => {
                 block.x = getXbyTimestamp(block.timestamp);
                 block.y1 = svg.height - 2 * svg.margin;
@@ -758,31 +766,24 @@
           blocks.latest.height = parseInt(await response.text());
           response = await fetch(apiURL(blocks.latest.height));
           const latest_hash = await response.text();
-          response = await fetch(apiURL(latest_hash));
-          const latest = await response.json();
+          const latest = await myFetch(apiURL(latest_hash));
           // get block 2 months ago
           response = await fetch(apiURL('sixty_days'));
           const sixty_days_hash = await response.text();
-          response = await fetch(apiURL(sixty_days_hash));
-          const sixty_days = await response.json();
+          const sixty_days = await myFetch(apiURL(sixty_days_hash));
           // get stats
-          response = await fetch(apiURL('stats'));
-          const stats = await response.json();
+          const stats = await myFetch(apiURL('stats'));
           blocks.retarget.height = stats.nextretarget;
           // get last retarget
           response = await fetch(apiURL('last_retarget'));
           const last_retarget_hash = await response.text();
-          response = await fetch(apiURL(last_retarget_hash));
-          const last_retarget = await response.json();
+          const last_retarget = await myFetch(apiURL(last_retarget_hash));
           // get mempool
-          response = await fetch(apiURL('mempool'));
-          const mempool = await response.json();
+          const mempool = await myFetch(apiURL('mempool'));
           // get usd price
-          response = await fetch(apiURL('usdprice'));
-          const usdprice = await response.json();
+          const usdprice = await myFetch(apiURL('usdprice'));
           // get average block size
-          response = await fetch(apiURL('blocksize'));
-          blocks.stats.avgblocksize = await response.json();
+          blocks.stats.avgblocksize = await myFetch(apiURL('blocksize'));
           // stats
           blocks.stats.n_tx              = stats.n_tx;
           blocks.stats.totalbc           = stats.totalbc;
