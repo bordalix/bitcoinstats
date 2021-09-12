@@ -294,7 +294,7 @@
                 <h2>Bitcoins mined</h2>
                 <p id="totalbc"></p>
                 <noscript><span class="tag is-dark">Enable javascript</span></noscript>
-                <p>of 20.999.817<a href="https://bitcoin.stackexchange.com/questions/38994/will-there-be-21-million-bitcoins-eventually">*</a></p>
+                <p>of <span id="allbcever">20,999,817.3</span><a href="https://bitcoin.stackexchange.com/questions/38994/will-there-be-21-million-bitcoins-eventually">*</a></p>
               </article>
             </div>
             <div class="tile is-parent is-vertical">
@@ -607,6 +607,7 @@
             document.getElementById('retarget-date').innerHTML = shortDate(blocks.retarget.timestamp);
             // render stats
             document.getElementById('market_price_usd').innerHTML = prettyNumber(blocks.stats.market_price_usd, '', 'usd');
+            document.getElementById('allbcever').innerHTML = prettyNumber(20999817.3);
             document.getElementById('totalbc').innerHTML = prettyNumber(blocks.stats.totalbc/100000000);
             document.getElementById('hash_rate').innerHTML = blocks.stats.hash_rate.toExponential(3);
             document.getElementById('difficulty').innerHTML = blocks.stats.difficulty.toExponential(3);
