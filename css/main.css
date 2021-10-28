@@ -35,5 +35,5 @@ dd {
 }
 
 .box > :nth-child(2):empty {
-  background: no-repeat center/20% url("../images/loading.gif");
+  background: no-repeat center/20% url("../images/rolling_block.gif");
 }
