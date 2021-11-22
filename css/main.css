@@ -37,3 +37,7 @@ dd {
 .box > :nth-child(2):empty {
   background: no-repeat center/20% url("../images/rolling_block.gif");
 }
+
+a {
+  color: #286cdb;
+}
