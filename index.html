@@ -504,7 +504,8 @@
           let seconds = parseInt(blocks.halving.timestamp - now)
           const years = seconds / year
           if (years > 1) {
-            geById('countdown-container').innerHTML = `More than ${parseInt(years)} years`
+            const plural = parseInt(years) === 1 ? 'year' : 'years'
+            geById('countdown-container').innerHTML = `More than ${parseInt(years)} ${plural}`
             return false
           }
           const minute = 60
