@@ -267,25 +267,21 @@
                 </p>
               </article>
               <article class="tile is-child box">
-                <h2>Next halving</h2>
-                <p id="countdown-container" style="visibility: hidden"></p>
+                <h2>Bitcoins mined</h2>
+                <p id="totalbc"></p>
                 <noscript><span class="tag is-dark">Enable javascript</span></noscript>
-                <p id="halving-container">Fri May 10 2024</p>
-                <p>&nbsp;</p>
-                <p>Using 2 month average</p>
-                <p id="halving" style="visibility: none">
-                  <a id="halving-show">Know more</a>
+                <p>
+                  of
+                  <a href="https://bitcoin.stackexchange.com/questions/38994/will-there-be-21-million-bitcoins-eventually"
+                    ><span id="allbcever">20,999,817.3</span></a
+                  >
                 </p>
               </article>
               <article class="tile is-child box">
-                <h2>Network uptime</h2>
-                <p id="uptime-container">99.984 %</p>
-                <p>Since Sat Jan 3 2009</p>
-                <h3>Downtime events</h3>
-                <p>
-                  <a id="CVE-2010-5139">Mon Aug 16 2010</a><br />
-                  <a id="CVE-2013-3220">Mon Mar 11 2013</a>
-                </p>
+                <h2>Total blocks</h2>
+                <p id="n_blocks_total"></p>
+                <noscript><span class="tag is-dark">Enable javascript</span></noscript>
+                <p><a id="last_block">Last block</a></p>
               </article>
             </div>
             <div class="tile is-parent is-vertical">
@@ -312,17 +308,6 @@
                 <p id="nextretarget-eta"></p>
                 <p id="retarget" style="visibility: none">
                   <a id="retarget-show">Know more</a>
-                </p>
-              </article>
-              <article class="tile is-child box">
-                <h2>Bitcoins mined</h2>
-                <p id="totalbc"></p>
-                <noscript><span class="tag is-dark">Enable javascript</span></noscript>
-                <p>
-                  of
-                  <a href="https://bitcoin.stackexchange.com/questions/38994/will-there-be-21-million-bitcoins-eventually"
-                    ><span id="allbcever">20,999,817.3</span></a
-                  >
                 </p>
               </article>
             </div>
@@ -352,11 +337,29 @@
                   <a id="blocksize-show" href="https://api.blockchain.info/charts/thumbnail/avg-block-size.png">See graph</a>
                 </p>
               </article>
+            </div>
+            <div class="tile is-parent is-vertical">
               <article class="tile is-child box">
-                <h2>Total blocks</h2>
-                <p id="n_blocks_total"></p>
+                <h2>Next halving</h2>
+                <p id="countdown-container" style="visibility: hidden"></p>
                 <noscript><span class="tag is-dark">Enable javascript</span></noscript>
-                <p><a id="last_block">Last block</a></p>
+                <p id="halving-container">Fri May 10 2024</p>
+                <p>&nbsp;</p>
+                <p>Using 2 month average</p>
+                <p id="halving" style="visibility: none">
+                  <a id="halving-show">Know more</a>
+                </p>
+              </article>
+              <article class="tile is-child box">
+                <h2>Network uptime</h2>
+                <p id="uptime-container">99.984 %</p>
+                <p>Since Sat Jan 3 2009</p>
+                <p>&nbsp;</p>
+                <p>Downtime events</p>
+                <p>
+                  <a id="CVE-2010-5139">Mon Aug 16 2010</a><br />
+                  <a id="CVE-2013-3220">Mon Mar 11 2013</a>
+                </p>
               </article>
             </div>
           </div>
