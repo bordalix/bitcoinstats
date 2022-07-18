@@ -278,10 +278,13 @@
                 </p>
               </article>
               <article class="tile is-child box">
-                <h2>Total blocks</h2>
-                <p id="n_blocks_total"></p>
+                <h2>Network difficulty</h2>
+                <p id="difficulty"></p>
+                <p id="difficulty-movement"></p>
                 <noscript><span class="tag is-dark">Enable javascript</span></noscript>
-                <p><a id="last_block">Last block</a></p>
+                <p>
+                  <a id="difficulty-show" href="https://api.blockchain.info/charts/thumbnail/difficulty.png">See graph</a>
+                </p>
               </article>
             </div>
             <div class="tile is-parent is-vertical">
@@ -294,15 +297,13 @@
                 </p>
               </article>
               <article class="tile is-child box">
-                <h2>Network difficulty</h2>
-                <p id="difficulty"></p>
+                <h2>Total blocks</h2>
+                <p id="n_blocks_total"></p>
                 <noscript><span class="tag is-dark">Enable javascript</span></noscript>
-                <p>
-                  <a id="difficulty-show" href="https://api.blockchain.info/charts/thumbnail/difficulty.png">See graph</a>
-                </p>
+                <p><a id="last_block">Last block</a></p>
               </article>
               <article class="tile is-child box">
-                <h2>Next retarget</h2>
+                <h2>Next retarget block</h2>
                 <p id="nextretarget"></p>
                 <noscript><span class="tag is-dark">Enable javascript</span></noscript>
                 <p id="nextretarget-eta"></p>
@@ -345,7 +346,7 @@
                 <noscript><span class="tag is-dark">Enable javascript</span></noscript>
                 <p id="halving-container">Fri May 10 2024</p>
                 <p>&nbsp;</p>
-                <p>Using 2 month average</p>
+                <p>Using 2 months average</p>
                 <p id="halving" style="visibility: none">
                   <a id="halving-show">Know more</a>
                 </p>
@@ -614,8 +615,9 @@
             }
             // show difficulty movement
             function showDifficultyMovement(textual = false) {
-              if (blocks.avg_time_block.last_retarget < 600) return (textual ? 'Will increase' : '') + ' &uarr; '
-              if (blocks.avg_time_block.last_retarget > 600) return (textual ? 'Will decrease' : '') + ' &darr; '
+              const percentageChange = parseFloat((600 - blocks.avg_time_block.last_retarget) / 6).toFixed(2) + '%'
+              if (blocks.avg_time_block.last_retarget < 600) return (textual ? 'Will increase ' : '&uarr; ') + percentageChange
+              if (blocks.avg_time_block.last_retarget > 600) return (textual ? 'Will decrease ' : '&darr; ') + percentageChange
               return (textual ? 'Will maintain' : '') + ' = '
             }
             // render data on halving
@@ -636,7 +638,7 @@
             geById('retarget-latest-timestamp').innerHTML = prettyNumber(blocks.latest.timestamp)
             geById('retarget-blocks').innerHTML = prettyNumber(blocks.until.retarget, 'blocks') + ` <sup>a-b</sup>`
             geById('retarget-movement').innerHTML = showDifficultyMovement(true)
-            geById('nextretarget').innerHTML = prettyNumber(blocks.retarget.height) + showDifficultyMovement()
+            geById('nextretarget').innerHTML = prettyNumber(blocks.retarget.height)
             geById('nextretarget-eta').innerHTML = shortDate(blocks.retarget.timestamp)
             geById('retarget-next-height').innerHTML = prettyNumber(blocks.retarget.height)
             geById('last-retarget-height').innerHTML = prettyNumber(blocks.last_retarget.height) + ' <sup>a-2016</sup>'
@@ -651,6 +653,7 @@
             geById('totalbc').innerHTML = prettyNumber(blocks.stats.totalbc / 100000000)
             geById('hash_rate').innerHTML = blocks.stats.hash_rate.toExponential(3)
             geById('difficulty').innerHTML = blocks.stats.difficulty.toExponential(3)
+            geById('difficulty-movement').innerHTML = showDifficultyMovement(true)
             geById('transactions').innerHTML = prettyNumber(blocks.stats.n_tx)
             geById('block_size').innerHTML = blocks.stats.avgblocksize?.toFixed(2) + ' MB'
             geById('mempool').innerHTML = prettyNumber(blocks.stats.mempoolsize?.y, 'bytes')
