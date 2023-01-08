@@ -141,6 +141,26 @@
         </section>
       </div>
     </div>
+
+    <div id="downtime-show-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Downtime events</p>
+          <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+          <p>
+            <a id="CVE-2010-5139">The value overflow incident</a>
+            - Mon Aug 16 2010
+          </p>
+          <p>
+            <a id="CVE-2013-3220">The Berkeley DB locks incident</a>
+            - Mon Mar 11 2013
+          </p>
+        </section>
+      </div>
+    </div>
     <div id="CVE-2013-3220-modal" class="modal">
       <div class="modal-background"></div>
       <div class="modal-card">
@@ -301,6 +321,30 @@
         </section>
       </div>
     </div>
+    <div id="fees-show-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Recommended fees</p>
+          <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+          <p>Values in sats/vbyte</p>
+          <dl>
+            <dt>Fastest fee</dt>
+            <dd id="fastestFee">1</dd>
+            <dt>Half hour fee</dt>
+            <dd id="halfHourFee">1</dd>
+            <dt>Hour fee</dt>
+            <dd id="hourFee">1</dd>
+            <dt>Economy fee</dt>
+            <dd id="economyFee">1</dd>
+            <dt>Minimum fee</dt>
+            <dd id="minimumFee">1</dd>
+          </dl>
+        </section>
+      </div>
+    </div>
     <section class="section has-text-centered">
       <div class="container">
         <h1 class="title">Bitcoin stats</h1>
@@ -433,26 +477,24 @@
             <div class="tile is-parent is-vertical">
               <article class="tile is-child box">
                 <h2>Next halving</h2>
-                <p id="countdown-container" style="visibility: hidden"></p>
-                <noscript
-                  ><span class="tag is-dark">Enable javascript</span></noscript
-                >
                 <p id="halving-container">Fri May 10 2024</p>
-                <p>&nbsp;</p>
-                <p>Using 2 months average</p>
                 <p id="halving" style="visibility: none">
                   <a id="halving-show">Know more</a>
+                </p>
+              </article>
+              <article class="tile is-child box">
+                <h2>Transaction fees</h2>
+                <p id="fees-container">1 sats/vbyte</p>
+                <p id="fees" style="visibility: none">
+                  <a id="fees-show">Know more</a>
                 </p>
               </article>
               <article class="tile is-child box">
                 <h2>Network uptime</h2>
                 <p id="uptime-container">99.984 %</p>
                 <p>Since Sat Jan 3 2009</p>
-                <p>&nbsp;</p>
-                <p>Downtime events</p>
-                <p>
-                  <a id="CVE-2010-5139">Mon Aug 16 2010</a><br />
-                  <a id="CVE-2013-3220">Mon Mar 11 2013</a>
+                <p id="downtime" style="visibility: none">
+                  <a id="downtime-show">Downtime events</a>
                 </p>
               </article>
             </div>
@@ -565,6 +607,13 @@
           halving: null,
           retarget: null,
         },
+        fees: {
+          fastestFee: 1,
+          halfHourFee: 1,
+          hourFee: 1,
+          economyFee: 1,
+          minimumFee: 1,
+        },
       }
       // keep lines short
       const geById = (id) => document.getElementById(id)
@@ -603,6 +652,8 @@
           'transactions-show',
           'mempool-show',
           'retarget-show',
+          'downtime-show',
+          'fees-show',
         ]
         for (const id of elementsToChangeLink) {
           const el = geById(id)
@@ -615,33 +666,6 @@
       }
       //
       function startTimers() {
-        // display countdown
-        function displayCountdown() {
-          const year = 60 * 60 * 24 * 365
-          const now = new Date().getTime() / 1000
-          let seconds = parseInt(blocks.halving.timestamp - now)
-          const years = seconds / year
-          if (years > 1) {
-            const plural = parseInt(years) === 1 ? 'year' : 'years'
-            geById('countdown-container').innerHTML = `More than ${parseInt(
-              years
-            )} ${plural}`
-            return false
-          }
-          const minute = 60
-          const hour = 60 * minute
-          const day = 24 * hour
-          const days = Math.floor(seconds / day)
-          seconds -= days * day
-          const hours = Math.floor(seconds / hour)
-          seconds -= hours * hour
-          const minutes = Math.floor(seconds / minute)
-          seconds -= minutes * minute
-          const countdown =
-            days + 'd ' + hours + 'h ' + minutes + 'm ' + seconds + 's'
-          geById('countdown-container').innerHTML = countdown
-          return true
-        }
         // format time since last block
         function displayTimeAgo() {
           const now = new Date().getTime() / 1000
@@ -674,7 +698,6 @@
           return true
         }
         // set timers
-        if (displayCountdown()) setInterval(displayCountdown, 1000)
         if (displayTimeAgo()) setInterval(displayTimeAgo, 1000)
         if (displayUptime()) setInterval(displayUptime, 1000)
         setTimeout(function () {
@@ -688,6 +711,7 @@
         function apiURL(block) {
           manageWait()
           url = mainApiUrl
+          if (block === 'fees') return `${url}/v1/fees/recommended`
           if (block === 'latest') return `${url}/blocks/tip/height`
           if (block === 'sixty_days')
             return `${url}/block-height/${parseInt(
@@ -849,8 +873,14 @@
               blocks.stats.mempoolsize?.y,
               'bytes'
             )
-            // show countdown to halving
-            geById('countdown-container').style.visibility = 'visible'
+            //
+            geById('fees-container').innerHTML =
+              fees.fastestFee === fees.minimumFee
+                ? `${fees.fastestFee} sats/vbyte`
+                : `${fees.minimumFee} to ${fees.fastestFee} sats/vbyte`
+            for (const id of Object.keys(fees)) {
+              geById(id).innerHTML = fees[id]
+            }
             // show more link
             geById('halving').style.visibility = 'visible'
           }
@@ -1064,6 +1094,9 @@
           const mempool = await myFetch(apiURL('mempool'))
           // get usd price
           const usdprice = await myFetch(apiURL('usdprice'))
+          // get fees
+          fees = await myFetch(apiURL('fees'))
+          console.log(await myFetch(apiURL('fees')))
           // get average block size
           blocks.stats.avgblocksize = await myFetch(apiURL('blocksize'))
           // stats
