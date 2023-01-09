@@ -42,10 +42,19 @@ a {
   color: #286cdb;
 }
 
+.content p.with-icon {
+  margin-bottom: 0;
+}
+
 p.with-icon img {
   height: 1em;
   margin-top: 10px;
   width: auto;
   position: relative;
   top: 2px;
+}
+
+span.discrete {
+  color: #333;
+  font-size: 0.8rem;
 }
