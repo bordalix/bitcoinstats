@@ -141,7 +141,6 @@
         </section>
       </div>
     </div>
-
     <div id="downtime-show-modal" class="modal">
       <div class="modal-background"></div>
       <div class="modal-card">
@@ -371,9 +370,9 @@
               <article class="tile is-child box">
                 <h2>Bitcoins mined</h2>
                 <p id="totalbc"></p>
-                <noscript
-                  ><span class="tag is-dark">Enable javascript</span></noscript
-                >
+                <noscript>
+                  <span class="tag is-dark">Enable javascript</span>
+                </noscript>
                 <p>
                   of
                   <a
@@ -383,77 +382,21 @@
                 </p>
               </article>
               <article class="tile is-child box">
-                <h2>Network difficulty</h2>
-                <p id="difficulty"></p>
-                <p id="difficulty-movement"></p>
-                <noscript
-                  ><span class="tag is-dark">Enable javascript</span></noscript
-                >
-                <p>
-                  <a
-                    id="difficulty-show"
-                    href="https://api.blockchain.info/charts/thumbnail/difficulty.png"
-                    >See graph</a
-                  >
+                <h2>Network uptime</h2>
+                <p id="uptime-container">99.984 %</p>
+                <p>Since Sat Jan 3 2009</p>
+                <p id="downtime" style="visibility: none">
+                  <a id="downtime-show">Downtime events</a>
                 </p>
               </article>
             </div>
             <div class="tile is-parent is-vertical">
-              <article class="tile is-child box">
-                <h2>Hash rate</h2>
-                <p id="hash_rate"></p>
-                <noscript
-                  ><span class="tag is-dark">Enable javascript</span></noscript
-                >
-                <p>
-                  <a
-                    id="hashrate-show"
-                    href="https://api.blockchain.info/charts/thumbnail/hash-rate.png"
-                    >See graph</a
-                  >
-                </p>
-              </article>
-              <article class="tile is-child box">
-                <h2>Total blocks</h2>
-                <p id="n_blocks_total"></p>
-                <noscript
-                  ><span class="tag is-dark">Enable javascript</span></noscript
-                >
-                <p><a id="last_block">Last block</a></p>
-              </article>
-              <article class="tile is-child box">
-                <h2>Next retarget block</h2>
-                <p id="nextretarget"></p>
-                <noscript
-                  ><span class="tag is-dark">Enable javascript</span></noscript
-                >
-                <p id="nextretarget-eta"></p>
-                <p id="retarget" style="visibility: none">
-                  <a id="retarget-show">Know more</a>
-                </p>
-              </article>
-            </div>
-            <div class="tile is-parent is-vertical">
-              <article class="tile is-child box">
-                <h2>Daily transactions</h2>
-                <p id="transactions"></p>
-                <noscript
-                  ><span class="tag is-dark">Enable javascript</span></noscript
-                >
-                <p>
-                  <a
-                    id="transactions-show"
-                    href="https://api.blockchain.info/charts/thumbnail/n-transactions-per-block.png"
-                    >See graph</a
-                  >
-                </p>
-              </article>
               <article class="tile is-child box">
                 <h2>Mempool size</h2>
                 <p id="mempool"></p>
-                <noscript
-                  ><span class="tag is-dark">Enable javascript</span></noscript
-                >
+                <noscript>
+                  <span class="tag is-dark">Enable javascript</span>
+                </noscript>
                 <p>
                   <a
                     id="mempool-show"
@@ -463,11 +406,18 @@
                 </p>
               </article>
               <article class="tile is-child box">
+                <h2>Transaction fees</h2>
+                <p id="fees-container">1 sats/vbyte</p>
+                <p id="fees" style="visibility: none">
+                  <a id="fees-show">Know more</a>
+                </p>
+              </article>
+              <article class="tile is-child box">
                 <h2>Block size</h2>
                 <p id="block_size"></p>
-                <noscript
-                  ><span class="tag is-dark">Enable javascript</span></noscript
-                >
+                <noscript>
+                  <span class="tag is-dark">Enable javascript</span>
+                </noscript>
                 <p>Average last 24 hours</p>
                 <p>
                   <a
@@ -480,6 +430,59 @@
             </div>
             <div class="tile is-parent is-vertical">
               <article class="tile is-child box">
+                <h2>Daily transactions</h2>
+                <p id="transactions"></p>
+                <noscript>
+                  <span class="tag is-dark">Enable javascript</span>
+                </noscript>
+                <p>
+                  <a
+                    id="transactions-show"
+                    href="https://api.blockchain.info/charts/thumbnail/n-transactions-per-block.png"
+                    >See graph</a
+                  >
+                </p>
+              </article>
+              <article class="tile is-child box">
+                <h2>Hash rate</h2>
+                <p id="hash_rate"></p>
+                <noscript>
+                  <span class="tag is-dark">Enable javascript</span>
+                </noscript>
+                <p>
+                  <a
+                    id="hashrate-show"
+                    href="https://api.blockchain.info/charts/thumbnail/hash-rate.png"
+                    >See graph</a
+                  >
+                </p>
+              </article>
+              <article class="tile is-child box">
+                <h2>Network difficulty</h2>
+                <p id="difficulty"></p>
+                <p id="difficulty-movement"></p>
+                <noscript>
+                  <span class="tag is-dark">Enable javascript</span>
+                </noscript>
+                <p>
+                  <a
+                    id="difficulty-show"
+                    href="https://api.blockchain.info/charts/thumbnail/difficulty.png"
+                    >See graph</a
+                  >
+                </p>
+              </article>
+            </div>
+            <div class="tile is-parent is-vertical">
+              <article class="tile is-child box">
+                <h2>Total blocks</h2>
+                <p id="n_blocks_total"></p>
+                <noscript>
+                  <span class="tag is-dark">Enable javascript</span>
+                </noscript>
+                <p><a id="last_block">Last block</a></p>
+              </article>
+              <article class="tile is-child box">
                 <h2>Next halving</h2>
                 <p id="halving-container">Fri May 10 2024</p>
                 <p id="halving" style="visibility: none">
@@ -487,18 +490,14 @@
                 </p>
               </article>
               <article class="tile is-child box">
-                <h2>Transaction fees</h2>
-                <p id="fees-container">1 sats/vbyte</p>
-                <p id="fees" style="visibility: none">
-                  <a id="fees-show">Know more</a>
-                </p>
-              </article>
-              <article class="tile is-child box">
-                <h2>Network uptime</h2>
-                <p id="uptime-container">99.984 %</p>
-                <p>Since Sat Jan 3 2009</p>
-                <p id="downtime" style="visibility: none">
-                  <a id="downtime-show">Downtime events</a>
+                <h2>Next retarget block</h2>
+                <p id="nextretarget"></p>
+                <noscript>
+                  <span class="tag is-dark">Enable javascript</span>
+                </noscript>
+                <p id="nextretarget-eta"></p>
+                <p id="retarget" style="visibility: none">
+                  <a id="retarget-show">Know more</a>
                 </p>
               </article>
             </div>
