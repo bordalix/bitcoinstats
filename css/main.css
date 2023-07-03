@@ -24,18 +24,18 @@ dd {
 }
 
 .box h3 {
-  margin: 1rem 0 .5rem 0;
+  margin: 1rem 0 0.5rem 0;
 }
 
 .box > :nth-child(2) {
   font-size: 1rem;
   font-weight: 600;
-  margin: .5rem 0;
+  margin: 0.5rem 0;
   min-height: 1.5rem;
 }
 
 .box > :nth-child(2):empty {
-  background: no-repeat center/20% url("../images/rolling_block.gif");
+  background: no-repeat center/20% url('../images/rolling_block.gif');
 }
 
 a {
@@ -57,4 +57,10 @@ p.with-icon img {
 span.discrete {
   color: #333;
   font-size: 0.8rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    filter: invert(1);
+  }
 }
