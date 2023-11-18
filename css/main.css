@@ -19,6 +19,10 @@ dd {
   text-overflow: ellipsis;
 }
 
+progress.progress:not(:last-child) {
+  margin-bottom: 0.5rem;
+}
+
 .box p {
   font-size: 0.8rem;
 }
@@ -71,4 +75,8 @@ span.discrete {
   body {
     filter: invert(1);
   }
+}
+
+.modal {
+  height: 100vh;
 }

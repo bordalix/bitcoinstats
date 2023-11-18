@@ -343,7 +343,7 @@
     </div>
     <div class="container">
       <p class="actions" onclick="toggleFullscreen()">&#x26F6;</p>
-      <section class="section has-text-centered">
+      <section class="section has-text-centered" style="padding-top: 2rem">
         <h1 class="title">Bitcoin stats</h1>
         <progress class="progress is-small" value="0" max="100"></progress>
         <div class="tile is-ancestor is-vertical">
@@ -624,6 +624,7 @@
       function initDOM() {
         // modal utils
         function openModal(id) {
+          window.scrollTo(0, 0)
           history.pushState({}, '')
           geById(id).classList.add('is-active')
         }
