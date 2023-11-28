@@ -341,9 +341,8 @@
         </section>
       </div>
     </div>
-    <div class="container">
-      <p class="actions" onclick="toggleFullscreen()">&#x26F6;</p>
-      <section class="section has-text-centered" style="padding-top: 2rem">
+    <section class="section has-text-centered" style="padding-top: 1rem">
+      <div class="container">
         <h1 class="title">Bitcoin stats</h1>
         <progress class="progress is-small" value="0" max="100"></progress>
         <div class="tile is-ancestor is-vertical">
@@ -516,8 +515,8 @@
             </div>
           </div>
         </div>
-      </section>
-    </div>
+      </div>
+    </section>
     <footer class="footer has-background-light">
       <div class="content has-text-centered">
         <p class="with-icon">
@@ -1133,14 +1132,6 @@
           renderDOM()
         }
         fetchData().catch((e) => console.log('Error:', e.message))
-      }
-      //
-      function toggleFullscreen() {
-        if (document.fullscreenElement) {
-          document.exitFullscreen()
-        } else {
-          document.querySelector('body').requestFullscreen()
-        }
       }
       // fire when ready
       document.addEventListener('DOMContentLoaded', () => {

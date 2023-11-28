@@ -58,14 +58,6 @@ p.with-icon img {
   top: 2px;
 }
 
-p.actions {
-  cursor: pointer;
-  font-size: 2rem;
-  margin-bottom: -2rem;
-  padding: 0 1.5rem 0 0;
-  text-align: right;
-}
-
 span.discrete {
   color: #333;
   font-size: 0.8rem;
