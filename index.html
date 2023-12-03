@@ -355,8 +355,8 @@
                   <span class="tag is-dark">Enable javascript</span>
                 </noscript>
                 <p>
-                  <a href="https://www.coindesk.com/price/bitcoin">
-                    Live on Coindesk
+                  <a href="https://www.blockchain.com/explorer/assets/btc">
+                    <span id="market_price_eur"></span>
                   </a>
                 </p>
               </article>
@@ -588,6 +588,7 @@
           mempoolsize: null,
           avgblocksize: 0,
           market_price_usd: null,
+          market_price_eur: null,
           difficulty: null,
           hash_rate: null,
           totalbc: null,
@@ -721,8 +722,7 @@
             return 'https://api.blockchain.info/q/24hravgblocksize'
           if (block === 'mempool')
             return 'https://api.blockchain.info/charts/mempool-size?timespan=1days&format=json&cors=true'
-          if (block === 'usdprice')
-            return 'https://api.coindesk.com/v1/bpi/currentprice.json'
+          if (block === 'usdprice') return 'https://blockchain.info/ticker'
           if (block.length > 10) return `${url}/block/${block}`
           return `${url}/block-height/${block}`
         }
@@ -747,14 +747,10 @@
               return show.split(/\s\d\d:/)[0]
             }
             // put commas and points on numbers
-            function prettyNumber(number, suffix = '', usd = false) {
+            function prettyNumber(number) {
               if (number == undefined) return '?'
-              if (suffix) suffix = ' ' + suffix
               const language = window.navigator.language
-              const options = usd ? { style: 'currency', currency: 'USD' } : {}
-              return (
-                new Intl.NumberFormat(language, options).format(number) + suffix
-              )
+              return new Intl.NumberFormat(language, {}).format(number)
             }
             // show difficulty movement
             function showDifficultyMovement(textual = false) {
@@ -782,21 +778,19 @@
             geById('latest-timestamp').innerHTML = prettyNumber(
               blocks.latest.timestamp
             )
-            geById('distance-blocks').innerHTML = prettyNumber(
-              blocks.distance.sixty_days,
-              'blocks (~2 months)'
-            )
+            geById('distance-blocks').innerHTML =
+              prettyNumber(blocks.distance.sixty_days) + ' blocks (~2 months)'
             geById('from-height').innerHTML =
               prettyNumber(blocks.sixty_days.height) + ' <sup>a-c</sup>'
             geById('from-timestamp').innerHTML = prettyNumber(
               blocks.sixty_days.timestamp
             )
             geById('average-time').innerHTML =
-              parseInt(blocks.avg_time_block.sixty_days, 'seconds') +
-              ' <sup>(b-d)/c</sup>'
+              prettyNumber(parseInt(blocks.avg_time_block.sixty_days)) +
+              ' seconds <sup>(b-d)/c</sup>'
             geById('halving-blocks').innerHTML =
-              prettyNumber(blocks.until.halving, 'blocks') +
-              ` <sup>${blocks.halving.height}-a</sup>`
+              prettyNumber(blocks.until.halving) +
+              ` blocks <sup>${blocks.halving.height}-a</sup>`
             geById('halving-timestamp').innerHTML =
               prettyNumber(parseInt(blocks.halving.timestamp)) +
               ' <sup>b+e*f</sup>'
@@ -837,8 +831,8 @@
               blocks.last_retarget.timestamp
             )
             geById('retarget-average-time').innerHTML =
-              parseInt(blocks.avg_time_block.last_retarget, 'seconds') +
-              ' <sup>(c-e)/f</sup>'
+              prettyNumber(parseInt(blocks.avg_time_block.last_retarget)) +
+              ' seconds <sup>(c-e)/f</sup>'
             geById('retarget-timestamp').innerHTML =
               prettyNumber(parseInt(blocks.retarget.timestamp)) +
               ' <sup>c+g*h</sup>'
@@ -846,11 +840,10 @@
               blocks.retarget.timestamp
             )
             // render stats
-            geById('market_price_usd').innerHTML = prettyNumber(
-              blocks.stats.market_price_usd,
-              '',
-              '$'
-            )
+            geById('market_price_usd').innerHTML =
+              '$ ' + prettyNumber(blocks.stats.market_price_usd)
+            geById('market_price_eur').innerHTML =
+              '€ ' + prettyNumber(blocks.stats.market_price_eur)
             geById('allbcever').innerHTML = prettyNumber(20999817.3)
             geById('totalbc').innerHTML = prettyNumber(
               blocks.stats.totalbc / 100000000
@@ -864,10 +857,8 @@
             geById('transactions').innerHTML = prettyNumber(blocks.stats.n_tx)
             geById('block_size').innerHTML =
               blocks.stats.avgblocksize?.toFixed(2) + ' MB'
-            geById('mempool').innerHTML = prettyNumber(
-              blocks.stats.mempoolsize?.y,
-              'bytes'
-            )
+            geById('mempool').innerHTML =
+              prettyNumber(blocks.stats.mempoolsize?.y) + ' bytes'
             //
             geById('fees-container').innerHTML =
               fees.fastestFee === fees.minimumFee
@@ -1099,7 +1090,8 @@
           blocks.stats.totalbc = stats.totalbc
           blocks.stats.hash_rate = stats.hash_rate
           blocks.stats.difficulty = stats.difficulty
-          blocks.stats.market_price_usd = parseInt(usdprice.bpi.USD.rate_float)
+          blocks.stats.market_price_usd = parseInt(usdprice.USD.last)
+          blocks.stats.market_price_eur = parseInt(usdprice.EUR.last)
           blocks.stats.mempoolsize = mempool.values.pop()
           // latest block
           blocks.latest.hash = latest_hash
