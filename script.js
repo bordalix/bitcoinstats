@@ -167,7 +167,7 @@ function getFullData() {
       return 'https://api.blockchain.info/q/24hravgblocksize'
     if (block === 'mempool')
       return 'https://api.blockchain.info/charts/mempool-size?timespan=1days&format=json&cors=true'
-    if (block === 'usdprice') return 'https://blockchain.info/ticker'
+    if (block === 'price') return 'https://btcoracle.bordalix.workers.dev'
     if (block.length > 10) return `${url}/block/${block}`
     return `${url}/block-height/${block}`
   }
@@ -477,7 +477,7 @@ function getFullData() {
     // get mempool
     const mempool = await myFetch(apiURL('mempool'))
     // get usd price
-    const usdprice = await myFetch(apiURL('usdprice'))
+    const price = await myFetch(apiURL('price'))
     // get fees
     fees = await myFetch(apiURL('fees'))
     console.log(await myFetch(apiURL('fees')))
@@ -488,8 +488,8 @@ function getFullData() {
     blocks.stats.totalbc = stats.totalbc
     blocks.stats.hash_rate = stats.hash_rate
     blocks.stats.difficulty = stats.difficulty
-    blocks.stats.market_price_usd = parseInt(usdprice.USD.last)
-    blocks.stats.market_price_eur = parseInt(usdprice.EUR.last)
+    blocks.stats.market_price_usd = parseInt(price.usd)
+    blocks.stats.market_price_eur = parseInt(price.eur)
     blocks.stats.mempoolsize = mempool.values.pop()
     // latest block
     blocks.latest.hash = latest_hash
