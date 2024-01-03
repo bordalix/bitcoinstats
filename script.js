@@ -480,7 +480,6 @@ function getFullData() {
     const price = await myFetch(apiURL('price'))
     // get fees
     fees = await myFetch(apiURL('fees'))
-    console.log(await myFetch(apiURL('fees')))
     // get average block size
     blocks.stats.avgblocksize = await myFetch(apiURL('blocksize'))
     // stats
