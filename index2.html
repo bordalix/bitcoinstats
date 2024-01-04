@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Primary Meta Tags -->
+    <title>Bitcoin stats</title>
+    <meta name="title" content="Bitcoin stats" />
+    <meta name="description" content="Bitcoin stats" />
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:url"
+      content="https://joaobordalo.com/labs/bitcoinstats/" />
+    <meta property="og:title" content="Bitcoin stats" />
+    <meta property="og:description" content="Bitcoin stats" />
+    <meta
+      property="og:image"
+      content="https://joaobordalo.com/labs/bitcoinstats/images/bitcoinstats.png" />
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta
+      property="twitter:url"
+      content="https://joaobordalo.com/labs/bitcoinstats/" />
+    <meta property="twitter:title" content="Bitcoin stats" />
+    <meta property="twitter:description" content="Bitcoin stats" />
+    <meta
+      property="twitter:image"
+      content="https://joaobordalo.com/labs/bitcoinstats/images/bitcoinstats.png" />
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="images/favicon.png" type="image/x-icon" />
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/bulma.min.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <!-- Lightning -->
+    <meta name="lightning" content="bordalix@getalby.com" />
+  </head>
+
+  <body class="has-background-light">
+    <div id="mempool-show-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Mempool size (bytes)</p>
+          <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+          <p>
+            1 week via
+            <a href="https://www.blockchain.com/charts/mempool-size">
+              https://blockchain.info
+            </a>
+          </p>
+          <img
+            src="https://api.blockchain.info/charts/thumbnail/mempool-size.png" />
+        </section>
+      </div>
+    </div>
+    <div id="transactions-show-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Daily transactions</p>
+          <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+          <p>
+            1 year via
+            <a href="https://www.blockchain.com/charts/n-transactions">
+              https://www.blockchain.com/
+            </a>
+          </p>
+          <img
+            src="https://api.blockchain.info/charts/thumbnail/n-transactions.png" />
+        </section>
+      </div>
+    </div>
+    <div id="difficulty-show-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Network difficulty</p>
+          <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+          <p>
+            1 year via
+            <a href="https://www.blockchain.com/charts/difficulty">
+              https://blockchain.info
+            </a>
+          </p>
+          <img
+            src="https://api.blockchain.info/charts/thumbnail/difficulty.png" />
+        </section>
+      </div>
+    </div>
+    <div id="hashrate-show-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Hash rate</p>
+          <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+          <p>
+            1 year via
+            <a href="https://www.blockchain.com/charts/hash-rate">
+              https://blockchain.info
+            </a>
+          </p>
+          <img
+            src="https://api.blockchain.info/charts/thumbnail/hash-rate.png" />
+        </section>
+      </div>
+    </div>
+    <div id="blocksize-show-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Block size</p>
+          <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+          <p>
+            1 year via
+            <a href="https://www.blockchain.com/charts/avg-block-size">
+              https://blockchain.info
+            </a>
+          </p>
+          <img
+            src="https://api.blockchain.info/charts/thumbnail/avg-block-size.png" />
+        </section>
+      </div>
+    </div>
+    <div id="downtime-show-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Downtime events</p>
+          <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+          <p style="margin-bottom: 1rem">
+            <a id="CVE-2010-5139">The value overflow incident</a><br />
+            <span class="discrete">
+              Mon Aug 16 2010 &middot; 8 hours and 27 minutes <br />
+              CVE-2010-5139
+            </span>
+          </p>
+          <p>
+            <a id="CVE-2013-3220">The Berkeley DB locks incident</a><br />
+            <span class="discrete">
+              Mon Mar 11 2013 &middot; 6 hours and 55 minutes<br />
+              CVE-2013-3220
+            </span>
+          </p>
+        </section>
+      </div>
+    </div>
+    <div id="CVE-2013-3220-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">CVE-2013-3220</p>
+          <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+          <p>The Berkeley DB locks incident</p>
+          <dl>
+            <dt>From</dt>
+            <dd>Mar 11, 2013 11:24:19 PM</dd>
+            <dt>Until</dt>
+            <dd>Mar 12, 2013 6:19:32 AM</dd>
+            <dt>Downtime</dt>
+            <dd>6 hours and 55 minutes</dd>
+            <dt>Blocks</dt>
+            <dd>
+              <a
+                href="https://mempool.space/block/00000000000001c108384350f74090433e7fcf79a606b8e797f065b130575932">
+                225430
+              </a>
+              to
+              <a
+                href="https://mempool.space/block/00000000000001976860e9e35b20b8ebe22c35f813a40962c25ead9fbd89510b">
+                225454
+              </a>
+            </dd>
+            <dt>Discussion</dt>
+            <dd>
+              <a
+                href="https://github.com/bitcoin/bips/blob/master/bip-0050.mediawiki">
+                https://github.com/bitcoin/bips/blob/master/bip-0050.mediawiki
+              </a>
+            </dd>
+            <dt>Media</dt>
+            <dd>
+              <a
+                href="https://bitcoinmagazine.com/articles/bitcoin-network-shaken-by-blockchain-fork-1363144448/">
+                https://bitcoinmagazine.com/articles/bitcoin-network-shaken-by-blockchain-fork-1363144448/
+              </a>
+            </dd>
+          </dl>
+        </section>
+      </div>
+    </div>
+    <div id="CVE-2010-5139-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">CVE-2010-5139</p>
+          <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+          <p>The value overflow incident</p>
+          <dl>
+            <dt>From</dt>
+            <dd>Aug 16, 2010 12:53:59 AM</dd>
+            <dt>Until</dt>
+            <dd>Aug 16, 2010 9:20:08 PM</dd>
+            <dt>Downtime</dt>
+            <dd>8 hours and 27 minutes</dd>
+            <dt>Blocks</dt>
+            <dd>
+              <a
+                href="https://mempool.space/block/000000000069e1affe7161ab4bcbeacebb4ddf155b50e807f42de971b688a09b">
+                74638
+              </a>
+              to
+              <a
+                href="https://mempool.space/block/00000000005c22d199706df1c38b38d76f8401920dcbe91edf3417f8847da707">
+                74691
+              </a>
+            </dd>
+            <dt>Discussion</dt>
+            <dd>
+              <a href="https://en.bitcoin.it/wiki/Value_overflow_incident">
+                https://en.bitcoin.it/wiki/Value_overflow_incident
+              </a>
+            </dd>
+            <dt>Media</dt>
+            <dd>
+              <a href="https://bitcointalk.org/index.php?topic=822.0">
+                https://bitcointalk.org/index.php?topic=822.0
+              </a>
+            </dd>
+          </dl>
+        </section>
+      </div>
+    </div>
+    <div id="halving-show-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Next halving</p>
+          <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+          <p>Using 2 month block time average</p>
+          <dl>
+            <dt>Latest block (a)</dt>
+            <dd id="latest-height"></dd>
+            <dt>Timestamp (b)</dt>
+            <dd id="latest-timestamp"></dd>
+            <dt>Time ago</dt>
+            <dd id="latest-time-ago"></dd>
+            <dt>Distance (c)</dt>
+            <dd id="distance-blocks">8640 blocks (~2 months)</dd>
+            <dt>From block</dt>
+            <dd id="from-height"></dd>
+            <dt>Timestamp (d)</dt>
+            <dd id="from-timestamp"></dd>
+            <dt>Avg p/ block (e)</dt>
+            <dd id="average-time"></dd>
+            <dt>To halving (f)</dt>
+            <dd id="halving-blocks"></dd>
+            <dt>Timestamp</dt>
+            <dd id="halving-timestamp"></dd>
+            <dt>Date</dt>
+            <dd id="halving-date"></dd>
+          </dl>
+        </section>
+      </div>
+    </div>
+    <div id="retarget-show-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Next retarget</p>
+          <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+          <p>Since last retarget</p>
+          <dl>
+            <dt>Next retarget (a)</dt>
+            <dd id="retarget-next-height"></dd>
+            <dt>Last block (b)</dt>
+            <dd id="retarget-latest-height"></dd>
+            <dt>Timestamp (c)</dt>
+            <dd id="retarget-latest-timest"></dd>
+            <dt>Last retarget (d)</dt>
+            <dd id="last-retarget-height"></dd>
+            <dt>Timestamp (e)</dt>
+            <dd id="last-retarget-timestamp"></dd>
+            <dt>Distance (f)</dt>
+            <dd id="retarget-distance-blocks"></dd>
+            <dt>Avg p/ block (g)</dt>
+            <dd id="retarget-average-time"></dd>
+            <dt>To retarget (h)</dt>
+            <dd id="retarget-blocks"></dd>
+            <dt>Timestamp</dt>
+            <dd id="retarget-timestamp"></dd>
+            <dt>Date</dt>
+            <dd id="retarget-date"></dd>
+            <dt>Difficulty</dt>
+            <dd id="retarget-movement"></dd>
+          </dl>
+        </section>
+      </div>
+    </div>
+    <div id="fees-show-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Recommended fees</p>
+          <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+          <p>Values in sats/vbyte</p>
+          <dl>
+            <dt>Fastest fee</dt>
+            <dd id="fastestFee">1</dd>
+            <dt>Half hour fee</dt>
+            <dd id="halfHourFee">1</dd>
+            <dt>Hour fee</dt>
+            <dd id="hourFee">1</dd>
+            <dt>Economy fee</dt>
+            <dd id="economyFee">1</dd>
+            <dt>Minimum fee</dt>
+            <dd id="minimumFee">1</dd>
+          </dl>
+        </section>
+      </div>
+    </div>
+    <section class="section has-text-centered" style="padding-top: 1rem">
+      <div class="container">
+        <h1 class="title">Bitcoin stats</h1>
+        <progress class="progress is-small" value="0" max="100"></progress>
+        <div class="tile is-ancestor is-vertical">
+          <div class="tile">
+            <div class="tile is-parent is-vertical">
+              <article class="tile is-child box">
+                <h2>Market price</h2>
+                <p id="market_price_usd"></p>
+                <noscript>
+                  <span class="tag is-dark">Enable javascript</span>
+                </noscript>
+                <p>
+                  <a href="https://www.blockchain.com/explorer/assets/btc">
+                    <span id="market_price_eur"></span>
+                  </a>
+                </p>
+              </article>
+              <article class="tile is-child box">
+                <h2>Bitcoins mined</h2>
+                <p id="totalbc"></p>
+                <noscript>
+                  <span class="tag is-dark">Enable javascript</span>
+                </noscript>
+                <p>
+                  of
+                  <a
+                    href="https://bitcoin.stackexchange.com/questions/38994/will-there-be-21-million-bitcoins-eventually">
+                    <span id="allbcever">20,999,817.3</span>
+                  </a>
+                </p>
+              </article>
+              <article class="tile is-child box">
+                <h2>Network uptime</h2>
+                <p id="uptime-container">99.984 %</p>
+                <p>Since Sat Jan 3 2009</p>
+                <p id="downtime" style="visibility: none">
+                  <a id="downtime-show">Downtime events</a>
+                </p>
+              </article>
+            </div>
+            <div class="tile is-parent is-vertical">
+              <article class="tile is-child box">
+                <h2>Mempool size</h2>
+                <p id="mempool"></p>
+                <noscript>
+                  <span class="tag is-dark">Enable javascript</span>
+                </noscript>
+                <p>
+                  <a
+                    id="mempool-show"
+                    href="https://api.blockchain.info/charts/thumbnail/mempool-size.png">
+                    See graph
+                  </a>
+                </p>
+              </article>
+              <article class="tile is-child box">
+                <h2>Transaction fees</h2>
+                <p id="fees-container"></p>
+                <p id="fees" style="visibility: none">
+                  <a id="fees-show">Know more</a>
+                </p>
+              </article>
+              <article class="tile is-child box">
+                <h2>Block size</h2>
+                <p id="block_size"></p>
+                <noscript>
+                  <span class="tag is-dark">Enable javascript</span>
+                </noscript>
+                <p>Average last 24 hours</p>
+                <p>
+                  <a
+                    id="blocksize-show"
+                    href="https://api.blockchain.info/charts/thumbnail/avg-block-size.png">
+                    See graph
+                  </a>
+                </p>
+              </article>
+            </div>
+            <div class="tile is-parent is-vertical">
+              <article class="tile is-child box">
+                <h2>Daily transactions</h2>
+                <p id="transactions"></p>
+                <noscript>
+                  <span class="tag is-dark">Enable javascript</span>
+                </noscript>
+                <p>
+                  <a
+                    id="transactions-show"
+                    href="https://api.blockchain.info/charts/thumbnail/n-transactions-per-block.png">
+                    See graph
+                  </a>
+                </p>
+              </article>
+              <article class="tile is-child box">
+                <h2>Hash rate</h2>
+                <p id="hash_rate"></p>
+                <noscript>
+                  <span class="tag is-dark">Enable javascript</span>
+                </noscript>
+                <p>
+                  <a
+                    id="hashrate-show"
+                    href="https://api.blockchain.info/charts/thumbnail/hash-rate.png">
+                    See graph
+                  </a>
+                </p>
+              </article>
+              <article class="tile is-child box">
+                <h2>Network difficulty</h2>
+                <p id="difficulty"></p>
+                <p id="difficulty-movement"></p>
+                <noscript>
+                  <span class="tag is-dark">Enable javascript</span>
+                </noscript>
+                <p>
+                  <a
+                    id="difficulty-show"
+                    href="https://api.blockchain.info/charts/thumbnail/difficulty.png">
+                    See graph
+                  </a>
+                </p>
+              </article>
+            </div>
+            <div class="tile is-parent is-vertical">
+              <article class="tile is-child box">
+                <h2>Total blocks</h2>
+                <p id="n_blocks_total"></p>
+                <noscript>
+                  <span class="tag is-dark">Enable javascript</span>
+                </noscript>
+                <p><a id="last_block">Last block</a></p>
+              </article>
+              <article class="tile is-child box">
+                <h2>Next halving</h2>
+                <p id="halving-container"></p>
+                <p id="halving" style="visibility: none">
+                  <a id="halving-show">Know more</a>
+                </p>
+              </article>
+              <article class="tile is-child box">
+                <h2>Next retarget block</h2>
+                <p id="nextretarget"></p>
+                <noscript>
+                  <span class="tag is-dark">Enable javascript</span>
+                </noscript>
+                <p id="nextretarget-eta"></p>
+                <p id="retarget" style="visibility: none">
+                  <a id="retarget-show">Know more</a>
+                </p>
+              </article>
+            </div>
+          </div>
+          <div class="tile">
+            <div class="tile is-parent">
+              <article id="svg-container" class="tile is-child box">
+                <h2>Latest blocks</h2>
+                <noscript>
+                  <span class="tag is-dark">Enable javascript</span>
+                </noscript>
+                <svg id="lastBlocksSVG" viewbox="0 0 1300 320">
+                  <text
+                    style="font-size: 14px; fill: #000"
+                    x="650"
+                    y="160"
+                    text-anchor="middle">
+                    Generating...
+                  </text>
+                </svg>
+              </article>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <footer class="footer has-background-light">
+      <div class="content has-text-centered">
+        <p class="with-icon">
+          <img src="images/nocopyright.svg" />
+          2023 public domain -
+          <strong>Bitcoin stats</strong> by
+          <a href="https://twitter.com/bordalix">@bordalix</a>
+        </p>
+        <p class="with-icon">
+          <img src="images/bitcoin.svg" />
+          bc1qeqldd29lz78rmlk2ns8q3wtwcjczafme4gfxc5
+        </p>
+        <p class="with-icon">
+          <img src="images/github.svg" />
+          <a href="https://github.com/bordalix/bitcoinstats">
+            https://github.com/bordalix/bitcoinstats
+          </a>
+        </p>
+        <p class="with-icon">
+          <img src="images/shop.svg" />
+          <a
+            href="https://www.google.com/maps/@/data=!3m1!4b1!4m3!11m2!2syL13ALveTaYqYZ-WHX0aLcRxNqRWpw!3e3?shorturl=1">
+            Shops accepting bitcoin in Portugal
+          </a>
+        </p>
+        <p class="with-icon">
+          <img src="images/lightning.svg" />
+          <a href="https://getalby.com/p/bordalix"
+            >https://getalby.com/p/bordalix</a
+          >
+        </p>
+      </div>
+    </footer>
+    <script src="./script2.js"></script>
+  </body>
+</html>
