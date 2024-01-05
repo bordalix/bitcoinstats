@@ -1,92 +1,335 @@
-const getById = (id) => document.getElementById(id)
+let tipBlock
+let lastBlocks
 
-const getJSON = async (url, text = false) => {
-  try {
-    const res = await fetch(url)
-    return text ? res.text() : res.json()
-  } catch {
-    return null
-  }
+const get = {
+  byId: (id) => document.getElementById(id),
+  info: async (url) => await get.json(`https://api.blockchain.info${url}`),
+  json: async (url, text = false) => {
+    try {
+      const res = await fetch(url)
+      return text ? res.text() : res.json()
+    } catch {
+      return null
+    }
+  },
+  mempool: async (url, text = false) => await get.json(`https://mempool.space/api${url}`, text),
 }
 
-const getMempool = async (url, text = false) =>
-  await getJSON(`https://mempool.space/api${url}`, text)
-
-const getInfo = async (url) =>
-  await getJSON(`https://api.blockchain.info${url}`)
-
-const prettyNumber = (num) => {
-  if (num == undefined) return '?'
-  const language = window.navigator.language
-  return new Intl.NumberFormat(language, {}).format(num)
+const pretty = {
+  date: (timestamp) => {
+    const date = new Date(timestamp)
+    const show = date.toString().split(/\s\(/)[0]
+    const diff = date - Date.now()
+    const soon = 3 * 24 * 60 * 60 * 1000
+    if (diff < soon) return show
+    return show.split(/\s\d\d:/)[0]
+  },
+  movement: (avgTimeBlock) => {
+    const percentageChange = parseFloat((600 - avgTimeBlock) / 6).toFixed(2) + '%'
+    return `${avgTimeBlock < 600 ? '&uarr;' : '&darr;'} ${percentageChange}`
+  },
+  number: (num, maximumFractionDigits) => {
+    if (num == undefined) return '?'
+    const language = window.navigator.language
+    return new Intl.NumberFormat(language, { maximumFractionDigits }).format(num)
+  },
 }
 
-const _60days = 6 * 24 * 60
-
-let tipBlock = {}
+const intervals = {
+  timeAgo: () => {
+    const now = new Date().getTime() / 1000
+    let seconds = parseInt(now - (tipBlock.timestamp ?? 0))
+    const minutes = Math.floor(seconds / 60)
+    seconds -= minutes * 60
+    get.byId('latest-time-ago').innerHTML = `${minutes}m ${seconds}s`
+  },
+  uptime: () => {
+    // Current time in seconds from the unix epoch start
+    const timenow = Math.floor(new Date().getTime() / 1000)
+    // Seconds since the bitcoin epoch.
+    // Where 1230951265 is the number of seconds since the unix epoch start at
+    // the time of the first block on Jan 3 2009 02:54:25 GMT
+    const totaltime = timenow - 1230951265
+    // Downtime for CVE-2010-5139: 8 hours, 27 minutes or 507 minutes = 30420 seconds.
+    // See https://en.bitcoin.it/wiki/Value_overflow_incident
+    // Discussion https://github.com/findbl0k/bitcoinUptime/issues/3
+    const downtime2010 = 30420
+    // Downtime for CVE-2013-3220: 6 hours, 55 minutes or 415 minutes = 24900 seconds.
+    // See https://github.com/bitcoin/bips/blob/master/bip-0050.mediawiki
+    const downtime2013 = 24900
+    const downtimeTotal = downtime2010 + downtime2013
+    const uptimePercent = (100 * (totaltime - downtimeTotal)) / totaltime
+    const uptimeString = uptimePercent.toFixed(10).toString().concat(' %')
+    get.byId('uptime-container').innerHTML = uptimeString
+  },
+}
 
 const components = {
   blocksize: async () => {
-    const json = await getInfo('/q/24hravgblocksize')
-    getById('block_size').innerText = json.toFixed(2) + ' MB'
+    const json = await get.info('/q/24hravgblocksize')
+    get.byId('block_size').innerText = json.toFixed(2) + ' MB'
   },
-  fees: async () => {
-    const json = await getMempool('/v1/fees/recommended')
-    getById('fees-container').innerText =
-      json.fastestFee === json.minimumFee
-        ? `${json.fastestFee} sats/vbyte`
-        : `${json.minimumFee} to ${json.fastestFee} sats/vbyte`
-    for (const id of Object.keys(json)) {
-      getById(id).innerText = json[id]
-    }
-  },
-  lastRetarget: async () => {},
   latest: async () => {
-    const tip = await getMempool('/blocks/tip/height')
-    let hash = await getMempool(`/block-height/${tip}`, true)
-    let json = await getMempool(`/block/${hash}`)
-    getById('latest-height').innerText = prettyNumber(json.height)
-    getById('latest-timestamp').innerText = prettyNumber(json.timestamp)
-    getById('n_blocks_total').innerText = prettyNumber(json.height)
-    getById('retarget-latest-height').innerText = prettyNumber(json.height)
-    getById('retarget-latest-timest').innerHTML = prettyNumber(json.timestamp)
-    getById('last_block').setAttribute(
-      'href',
-      `https://mempool.space/block/${hash}`
-    )
-    hash = await getMempool(`/block-height/${json.height - _60days}`, true)
-    json = await getMempool(`/block/${hash}`)
-    getById('distance-blocks').innerText = `${_60days} blocks (~2 months)`
-    getById('from-height').innerHTML = `${json.height} <sup>a-c</sup>`
-    getById('from-timestamp').innerHTML = prettyNumber(json.timestamp)
+    const _60days = 6 * 24 * 60
+    const tip = await get.mempool('/blocks/tip/height')
+    let hash = await get.mempool(`/block-height/${tip}`, true)
+    let json = await get.mempool(`/block/${hash}`)
+    hash = await get.mempool(`/block-height/${json.height - _60days}`, true)
+    const old = await get.mempool(`/block/${hash}`)
+    const avgTimeBlock = (json.timestamp - old.timestamp) / _60days
+    const blocksToHalving = 840_000 - json.height
+    const halvingTimestamp = blocksToHalving * avgTimeBlock * 1000 + Date.now()
+    tipBlock = json
+
+    lastBlocks = await get.mempool(`/blocks/${tip}`)
+    lastBlocks = lastBlocks?.concat(await get.mempool(`/blocks/${tip - 10}`))
+    timeline.draw(lastBlocks)
+
+    get.byId('latest-height').innerText = pretty.number(json.height)
+    get.byId('latest-timestamp').innerText = pretty.number(json.timestamp)
+    get.byId('n_blocks_total').innerText = pretty.number(json.height)
+    get.byId('retarget-latest-height').innerText = pretty.number(json.height)
+    get.byId('retarget-latest-timest').innerHTML = pretty.number(json.timestamp)
+    get.byId('distance-blocks').innerText = `${_60days} blocks (~2 months)`
+    get.byId('from-height').innerHTML = `${old.height} <sup>a-c</sup>`
+    get.byId('from-timestamp').innerText = pretty.number(old.timestamp)
+    get.byId('halving-container').innerText = pretty.date(halvingTimestamp)
+    get.byId('average-time').innerHTML = pretty.number(parseInt(avgTimeBlock)) + ' seconds <sup>(b-d)/c</sup>'
+    get.byId('halving-blocks').innerHTML = `${pretty.number(blocksToHalving)} blocks <sup>${840_000}-a</sup>`
+    get.byId('halving-timestamp').innerHTML = pretty.number(parseInt(halvingTimestamp / 1000)) + ' <sup>b+e*f</sup>'
+    get.byId('halving-date').innerHTML = pretty.date(halvingTimestamp)
+    get.byId('last_block').setAttribute('href', `https://mempool.space/block/${hash}`)
   },
   mempool: async () => {
-    const json = await getInfo(
-      '/charts/mempool-size?timespan=1days&format=json&cors=true'
-    )
-    getById('mempool').innerText = prettyNumber(json.values.pop().y) + ' bytes'
+    const json = await get.info('/charts/mempool-size?timespan=1days&format=json&cors=true')
+    get.byId('mempool').innerText = pretty.number(json.values.pop().y) + ' bytes'
   },
   price: async () => {
-    const json = await getJSON('https://btcoracle.bordalix.workers.dev')
-    getById('market_price_usd').innerText = json.usd
-    getById('market_price_eur').innerText = json.eur
+    const json = await get.json('https://btcoracle.bordalix.workers.dev')
+    const fees = await get.mempool('/v1/fees/recommended')
+    fees.fiat = {
+      fastestFee: pretty.number((fees.fastestFee * 140 * json.usd) / 10e7, 2),
+      minimumFee: pretty.number((fees.minimumFee * 140 * json.usd) / 10e7, 2),
+    }
+    get.byId('market_price_usd').innerText = `$ ${pretty.number(json.usd, 2)}`
+    get.byId('market_price_eur').innerText = `€ ${pretty.number(json.eur, 2)}`
+    get.byId('fees-container').innerText =
+      fees.fastestFee === fees.minimumFee
+        ? `${fees.fastestFee} sats/vbyte`
+        : `${fees.minimumFee} to ${fees.fastestFee} sats/vbyte`
+    get.byId('fees-fiat').innerText =
+      fees.fastestFee === fees.minimumFee
+        ? `$${fees.fiat.fastestFee}`
+        : `$${fees.fiat.minimumFee} to $${fees.fiat.fastestFee}`
+    for (const id of Object.keys(fees)) {
+      const el = get.byId(id)
+      if (el && fees[id]) el.innerText = fees[id]
+    }
   },
   stats: async () => {
-    json = await getInfo('/stats')
-    getById('difficulty').innerText = json.difficulty.toExponential(3)
-    getById('hash_rate').innerText = json.hash_rate.toExponential(3)
-    getById('totalbc').innerText = prettyNumber(json.totalbc)
-    getById('transactions').innerText = prettyNumber(json.n_tx)
-    getById('nextretarget').innerText = prettyNumber(json.nextretarget)
+    const json = await get.info('/stats')
     const last_retarget = json.nextretarget - 2016
-    let hash = await getMempool(`/block-height/${last_retarget}`, true)
-    json = await getMempool(`/block/${hash}`)
-    console.log('xxxx', json)
+    const hash = await get.mempool(`/block-height/${last_retarget}`, true)
+    const last = await get.mempool(`/block/${hash}`)
+    const blocksSinceRetarget = json.n_blocks_total - last.height
+    const blocksToRetarget = json.nextretarget - json.n_blocks_total
+    const avgTimeBlock = (json.timestamp / 1000 - last.timestamp) / blocksSinceRetarget
+    const timeNextRetarget = blocksToRetarget * avgTimeBlock * 1000 + Date.now()
+    get.byId('hash_rate').innerText = json.hash_rate.toExponential(3)
+    get.byId('totalbc').innerText = pretty.number(json.totalbc / 10e7)
+    get.byId('transactions').innerText = pretty.number(json.n_tx)
+    get.byId('nextretarget').innerText = pretty.number(json.nextretarget)
+    get.byId('nextretarget-eta').innerText = pretty.date(timeNextRetarget)
+    get.byId('retarget-next-height').innerText = pretty.number(json.nextretarget)
+    get.byId('last-retarget-height').innerHTML = `${pretty.number(last_retarget)} <sup>a-2016</sup>`
+    get.byId('retarget-distance-blocks').innerHTML = pretty.number(blocksSinceRetarget) + ' <sup>b-d</sup>'
+    get.byId('last-retarget-timestamp').innerText = pretty.number(last.timestamp)
+    get.byId('retarget-blocks').innerText = pretty.number(blocksToRetarget)
+    get.byId('retarget-average-time').innerHTML = pretty.number(parseInt(avgTimeBlock)) + ' seconds <sup>(c-e)/f</sup>'
+    get.byId('retarget-timestamp').innerHTML = pretty.number(last.timestamp) + ' <sup>c+g*h</sup>'
+    get.byId('retarget-date').innerText = pretty.date(timeNextRetarget)
+    get.byId('retarget-movement').innerHTML = pretty.movement(avgTimeBlock)
+    get.byId('difficulty').innerHTML = json.difficulty.toExponential(3)
+    get.byId('difficulty-movement').innerHTML = pretty.movement(avgTimeBlock)
+  },
+  uptime: intervals.uptime,
+}
+
+const listeners = {
+  modals: () => {
+    // modal utils
+    function openModal(id) {
+      window.scrollTo(0, 0)
+      history.pushState({}, '')
+      get.byId(id).classList.add('is-active')
+    }
+    function closeModal(back = true) {
+      for (const modal of document.getElementsByClassName('modal')) {
+        modal.classList.remove('is-active')
+      }
+      if (back) history.back()
+    }
+    // close modal on back (mobile)
+    window.addEventListener('popstate', () => closeModal(false))
+    // hrefs were in place just for it to work without javascript
+    // if javascript is enabled, show the modal instead
+    const elementsToChangeLink = [
+      'CVE-2010-5139',
+      'CVE-2013-3220',
+      'halving-show',
+      'hashrate-show',
+      'blocksize-show',
+      'difficulty-show',
+      'transactions-show',
+      'mempool-show',
+      'retarget-show',
+      'downtime-show',
+    ]
+    for (const id of elementsToChangeLink) {
+      const el = get.byId(id)
+      el.removeAttribute('href')
+      el.addEventListener('click', () => openModal(`${id}-modal`))
+    }
+    // add event listener to close modal buttons
+    const els = document.getElementsByClassName('delete')
+    for (const el of els) el.addEventListener('click', () => closeModal())
   },
 }
 
-const updateComponents = () => {
-  for (c of Object.keys(components)) components[c]()
+const timeline = {
+  prettyDate: (timestamp) => {
+    const date = new Date(timestamp * 1000)
+    const minutes = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes()
+    return `${date.getHours()}:${minutes}`
+  },
+  draw: (lastBlocks) => {
+    const hourTicks = []
+    const svg = { margin: 20, width: 1300, height: 320 }
+    const numOfPeriods = 7
+    const secondsPerPeriod = 600
+    const graphWidth = svg.width - 2 * svg.margin
+    const secondsToPixels = graphWidth / numOfPeriods / secondsPerPeriod
+    const now = parseInt(new Date().getTime() / 1000)
+    const lastTick = parseInt(now / secondsPerPeriod) * secondsPerPeriod
+    const diffToNow = parseInt(now - lastTick)
+    const getXbyTimestamp = (timestamp) => parseInt(svg.width - svg.margin - (now - timestamp) * secondsToPixels)
+
+    lastBlocks.forEach((block) => {
+      block.x = getXbyTimestamp(block.timestamp)
+      block.y1 = svg.height - 2 * svg.margin
+      block.y2 = 30
+      block.label = `block ${block.height}`
+    })
+
+    for (let i = numOfPeriods; i >= 0; i--) {
+      const timestamp = lastTick - i * secondsPerPeriod
+      hourTicks.push({
+        timestamp: timestamp,
+        pretty_date: timeline.prettyDate(timestamp),
+        x: getXbyTimestamp(timestamp),
+        y1: svg.height - svg.margin,
+        y2: svg.height - svg.margin * 2,
+      })
+    }
+    const schema = 'http://www.w3.org/2000/svg'
+    // return a svg line
+    function getLine(x1, y1, x2, y2, color = '#000', width = 1) {
+      const line = document.createElementNS(schema, 'line')
+      line.setAttribute('x1', x1)
+      line.setAttribute('y1', y1)
+      line.setAttribute('x2', x2)
+      line.setAttribute('y2', y2)
+      line.setAttribute('style', `stroke:${color}; stroke-width:${width};`)
+      return line
+    }
+    // return a svg text
+    function getText(str, x, y, vertical = false, color = '#000') {
+      const text = document.createElementNS(schema, 'text')
+      text.setAttribute('style', `font-size: 14px; fill: ${color}`)
+      text.textContent = str
+      if (vertical) {
+        text.setAttribute('transform', `translate(${x},${y}) rotate(-90)`)
+      } else {
+        text.setAttribute('x', x)
+        text.setAttribute('y', y)
+        text.setAttribute('text-anchor', 'middle')
+      }
+      return text
+    }
+    // return a svg a element
+    function getAnchor(hash) {
+      const a = document.createElementNS(schema, 'a')
+      a.setAttribute('href', `https://mempool.space/block/${hash}`)
+      return a
+    }
+    // return a rectangle centered on coordinates passed
+    function getRect(x1) {
+      const width = 40
+      const height = 100
+      const x = x1 - width / 2
+      const y = 150
+      const rect = document.createElementNS(schema, 'rect')
+      rect.setAttribute('x', x)
+      rect.setAttribute('y', y)
+      rect.setAttribute('width', width)
+      rect.setAttribute('height', height)
+      rect.setAttribute('style', 'fill:#ddd;stroke-width:1;stroke:#000')
+      return rect
+    }
+    // our svg
+    const svg1 = get.byId('lastBlocksSVG')
+    // remove all elements from svg
+    while (svg1.lastChild) svg1.removeChild(svg1.lastChild)
+    // make x axis
+    const x_axis = {
+      x1: svg.margin,
+      y1: svg.height - 2 * svg.margin,
+      x2: svg.margin + graphWidth,
+      y2: svg.height - 2 * svg.margin,
+    }
+    svg1.appendChild(getLine(x_axis.x1, x_axis.y1, x_axis.x2, x_axis.y2))
+    // put hour ticks on x axis
+    hourTicks.forEach((tick) => {
+      if (tick.x > 10) {
+        svg1.appendChild(getLine(tick.x, tick.y1, tick.x, tick.y2)) // hour marks
+        svg1.appendChild(getText(tick.pretty_date, tick.x, svg.height)) // hours
+      }
+    })
+    // put blocks
+    lastBlocks.forEach((block) => {
+      svg1.appendChild(getText(block.label, block.x - 4, 120, true)) // block height
+      svg1.appendChild(getLine(block.x, block.y1, block.x, block.y2, '#000')) // block vertical line
+      const a = getAnchor(block.id)
+      a.appendChild(getRect(block.x))
+      a.appendChild(getText(block.tx_count + ' tx', block.x + 6, 230, true, '#3273dc'))
+      svg1.appendChild(a)
+    })
+    // put 'now' line
+    const nowLine = {
+      x: svg.margin + graphWidth,
+      y1: svg.height - 2 * svg.margin,
+      y2: 35,
+      label: `now ${timeline.prettyDate(now)}`,
+      color: '#a00',
+    }
+    svg1.appendChild(getText(nowLine.label, nowLine.x + 13, nowLine.y2 + 65, true, nowLine.color))
+    svg1.appendChild(getLine(nowLine.x, nowLine.y1, nowLine.x, nowLine.y2, nowLine.color))
+  },
 }
 
-document.addEventListener('DOMContentLoaded', () => updateComponents())
+document.addEventListener('DOMContentLoaded', () => {
+  const updateComponents = () => {
+    for (c of Object.keys(components)) components[c]()
+  }
+  const runIntervals = () => {
+    for (i of Object.keys(intervals)) intervals[i]()
+  }
+  listeners.modals()
+  updateComponents()
+  setInterval(runIntervals, 1000)
+  // update on the minute
+  setTimeout(function () {
+    updateComponents()
+    setInterval(updateComponents, 60000)
+  }, (59 - new Date().getSeconds()) * 1000)
+})
