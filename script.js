@@ -36,13 +36,6 @@ const pretty = {
 }
 
 const intervals = {
-  timeAgo: () => {
-    const now = new Date().getTime() / 1000
-    let seconds = parseInt(now - (tipBlock.timestamp ?? 0))
-    const minutes = Math.floor(seconds / 60)
-    seconds -= minutes * 60
-    get.byId('latest-time-ago').innerHTML = `${minutes}m ${seconds}s`
-  },
   uptime: () => {
     // Current time in seconds from the unix epoch start
     const timenow = Math.floor(new Date().getTime() / 1000)
@@ -71,13 +64,14 @@ const components = {
   },
   latest: async () => {
     const _60days = 6 * 24 * 60
+    const halvingBlock = 840_000
     const tip = await get.mempool('/blocks/tip/height')
     let hash = await get.mempool(`/block-height/${tip}`, true)
     let json = await get.mempool(`/block/${hash}`)
     hash = await get.mempool(`/block-height/${json.height - _60days}`, true)
     const old = await get.mempool(`/block/${hash}`)
     const avgTimeBlock = (json.timestamp - old.timestamp) / _60days
-    const blocksToHalving = 840_000 - json.height
+    const blocksToHalving = halvingBlock - json.height
     const halvingTimestamp = blocksToHalving * avgTimeBlock * 1000 + Date.now()
     tipBlock = json
 
@@ -85,18 +79,11 @@ const components = {
     lastBlocks = lastBlocks?.concat(await get.mempool(`/blocks/${tip - 10}`))
     timeline.draw(lastBlocks)
 
-    get.byId('latest-height').innerText = pretty.number(json.height)
-    get.byId('latest-timestamp').innerText = pretty.number(json.timestamp)
     get.byId('n_blocks_total').innerText = pretty.number(json.height)
-    get.byId('retarget-latest-height').innerText = pretty.number(json.height)
-    get.byId('retarget-latest-timest').innerHTML = pretty.number(json.timestamp)
-    get.byId('distance-blocks').innerText = `${_60days} blocks (~2 months)`
-    get.byId('from-height').innerHTML = `${old.height} <sup>a-c</sup>`
-    get.byId('from-timestamp').innerText = pretty.number(old.timestamp)
+    get.byId('halving-average-time').innerText = pretty.number(parseInt(avgTimeBlock))
     get.byId('halving-container').innerText = pretty.date(halvingTimestamp)
-    get.byId('average-time').innerHTML = pretty.number(parseInt(avgTimeBlock)) + ' seconds <sup>(b-d)/c</sup>'
-    get.byId('halving-blocks').innerHTML = `${pretty.number(blocksToHalving)} blocks <sup>${840_000}-a</sup>`
-    get.byId('halving-timestamp').innerHTML = pretty.number(parseInt(halvingTimestamp / 1000)) + ' <sup>b+e*f</sup>'
+    get.byId('halving-block').innerText = pretty.number(halvingBlock)
+    get.byId('halving-blocks').innerText = pretty.number(blocksToHalving)
     get.byId('halving-date').innerHTML = pretty.date(halvingTimestamp)
     get.byId('last_block').setAttribute('href', `https://mempool.space/block/${hash}`)
   },
@@ -141,12 +128,8 @@ const components = {
     get.byId('nextretarget').innerText = pretty.number(json.nextretarget)
     get.byId('nextretarget-eta').innerText = pretty.date(timeNextRetarget)
     get.byId('retarget-next-height').innerText = pretty.number(json.nextretarget)
-    get.byId('last-retarget-height').innerHTML = `${pretty.number(last_retarget)} <sup>a-2016</sup>`
-    get.byId('retarget-distance-blocks').innerHTML = pretty.number(blocksSinceRetarget) + ' <sup>b-d</sup>'
-    get.byId('last-retarget-timestamp').innerText = pretty.number(last.timestamp)
     get.byId('retarget-blocks').innerText = pretty.number(blocksToRetarget)
-    get.byId('retarget-average-time').innerHTML = pretty.number(parseInt(avgTimeBlock)) + ' seconds <sup>(c-e)/f</sup>'
-    get.byId('retarget-timestamp').innerHTML = pretty.number(last.timestamp) + ' <sup>c+g*h</sup>'
+    get.byId('retarget-average-time').innerHTML = pretty.number(parseInt(avgTimeBlock))
     get.byId('retarget-date').innerText = pretty.date(timeNextRetarget)
     get.byId('retarget-movement').innerHTML = pretty.movement(avgTimeBlock)
     get.byId('difficulty').innerHTML = json.difficulty.toExponential(3)

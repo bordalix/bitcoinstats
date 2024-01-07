@@ -226,29 +226,11 @@
           <button class="delete" aria-label="close"></button>
         </header>
         <section class="modal-card-body">
-          <p>Using 2 month block time average</p>
-          <dl>
-            <dt>Latest block (a)</dt>
-            <dd id="latest-height"></dd>
-            <dt>Timestamp (b)</dt>
-            <dd id="latest-timestamp"></dd>
-            <dt>Time ago</dt>
-            <dd id="latest-time-ago"></dd>
-            <dt>Distance (c)</dt>
-            <dd id="distance-blocks">8640 blocks (~2 months)</dd>
-            <dt>From block</dt>
-            <dd id="from-height"></dd>
-            <dt>Timestamp (d)</dt>
-            <dd id="from-timestamp"></dd>
-            <dt>Avg p/ block (e)</dt>
-            <dd id="average-time"></dd>
-            <dt>To halving (f)</dt>
-            <dd id="halving-blocks"></dd>
-            <dt>Timestamp</dt>
-            <dd id="halving-timestamp"></dd>
-            <dt>Date</dt>
-            <dd id="halving-date"></dd>
-          </dl>
+          <p>Using <span>2 month</span> block time average</p>
+          <p>Average time per block: <span id="halving-average-time">600</span> seconds</p>
+          <p>Next retarget block: <span id="halving-block"></span></p>
+          <p>Blocks to retarget: <span id="halving-blocks"></span></p>
+          <p>Expected date: <span id="halving-date"></span></p>
         </section>
       </div>
     </div>
@@ -260,31 +242,12 @@
           <button class="delete" aria-label="close"></button>
         </header>
         <section class="modal-card-body">
-          <p>Since last retarget</p>
-          <dl>
-            <dt>Next retarget (a)</dt>
-            <dd id="retarget-next-height"></dd>
-            <dt>Last block (b)</dt>
-            <dd id="retarget-latest-height"></dd>
-            <dt>Timestamp (c)</dt>
-            <dd id="retarget-latest-timest"></dd>
-            <dt>Last retarget (d)</dt>
-            <dd id="last-retarget-height"></dd>
-            <dt>Timestamp (e)</dt>
-            <dd id="last-retarget-timestamp"></dd>
-            <dt>Distance (f)</dt>
-            <dd id="retarget-distance-blocks"></dd>
-            <dt>Avg p/ block (g)</dt>
-            <dd id="retarget-average-time"></dd>
-            <dt>To retarget (h)</dt>
-            <dd id="retarget-blocks"></dd>
-            <dt>Timestamp</dt>
-            <dd id="retarget-timestamp"></dd>
-            <dt>Date</dt>
-            <dd id="retarget-date"></dd>
-            <dt>Difficulty</dt>
-            <dd id="retarget-movement"></dd>
-          </dl>
+          <p>Using <span>epoch</span> block time average</p>
+          <p>Average time per block: <span id="retarget-average-time">600</span> seconds.</p>
+          <p>Next retarget block: <span id="retarget-next-height"></span></p>
+          <p>Blocks to retarget: <span id="retarget-blocks"></span></p>
+          <p>Expected date: <span id="retarget-date"></span></p>
+          <p>Difficulty adjustment: <span id="retarget-movement"></span></p>
         </section>
       </div>
     </div>
@@ -370,7 +333,7 @@
                 <h2>Transaction fees</h2>
                 <p id="fees-container"></p>
                 <p id="fees" style="visibility: none">
-                  <a id="fees-fiat"></a>
+                  <a id="fees-fiat" href="https://mempool.space"></a>
                 </p>
               </article>
               <article class="tile is-child box">

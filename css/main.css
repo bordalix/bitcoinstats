@@ -72,3 +72,7 @@ span.discrete {
 .modal {
   height: 100vh;
 }
+
+.modal-card-body p span {
+  font-weight: 700;
+}
