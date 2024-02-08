@@ -125,7 +125,6 @@ const components = {
     get.byId('hash_rate').innerText = json.hash_rate.toExponential(3)
     get.byId('totalbc').innerText = pretty.number(json.totalbc / 10e7)
     get.byId('transactions').innerText = pretty.number(json.n_tx)
-    get.byId('nextretarget').innerText = pretty.number(json.nextretarget)
     get.byId('nextretarget-eta').innerText = pretty.date(timeNextRetarget)
     get.byId('retarget-next-height').innerText = pretty.number(json.nextretarget)
     get.byId('retarget-blocks').innerText = pretty.number(blocksToRetarget)
