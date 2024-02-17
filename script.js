@@ -16,11 +16,11 @@ const get = {
 }
 
 const pretty = {
-  date: (timestamp) => {
+  date: (timestamp, days = 2) => {
     const date = new Date(timestamp)
     const show = date.toString().split(/\s\(/)[0]
     const diff = date - Date.now()
-    const soon = 3 * 24 * 60 * 60 * 1000
+    const soon = days * 24 * 60 * 60 * 1000
     if (diff < soon) return show
     return show.split(/\s\d\d:/)[0]
   },
@@ -32,6 +32,36 @@ const pretty = {
     if (num == undefined) return '?'
     const language = window.navigator.language
     return new Intl.NumberFormat(language, { maximumFractionDigits }).format(num)
+  },
+  smartDate: (timestamp, days = 1) => {
+    const date = new Date(timestamp)
+    const show = date.toString().split(/\s\(/)[0]
+    const diff = date - Date.now()
+    const soon = days * 24 * 60 * 60 * 1000
+    if (diff < soon) return `In ${pretty.timeago(Math.floor(diff / 1000))}`
+    return show.split(/\s\d\d:/)[0]
+  },
+  timeago: (seconds, partial = []) => {
+    const min = 60
+    const hour = 60 * min
+    const day = 24 * hour
+    if (seconds > day) {
+      const num = Math.floor(seconds / day)
+      partial.push(`${num}d`)
+      return pretty.timeago(seconds - num * day, partial)
+    }
+    if (seconds > hour) {
+      const num = Math.floor(seconds / hour)
+      partial.push(`${num}h`)
+      return pretty.timeago(seconds - num * hour, partial)
+    }
+    if (seconds > min) {
+      const num = Math.floor(seconds / min)
+      partial.push(`${num}m`)
+      return pretty.timeago(seconds - num * min, partial)
+    }
+    partial.push(`${seconds}s`)
+    return partial.join(' ')
   },
 }
 
@@ -81,7 +111,7 @@ const components = {
 
     get.byId('n_blocks_total').innerText = pretty.number(json.height)
     get.byId('halving-average-time').innerText = pretty.number(parseInt(avgTimeBlock))
-    get.byId('halving-container').innerText = pretty.date(halvingTimestamp)
+    get.byId('halving-container').innerText = pretty.smartDate(halvingTimestamp)
     get.byId('halving-block').innerText = pretty.number(halvingBlock)
     get.byId('halving-blocks').innerText = pretty.number(blocksToHalving)
     get.byId('halving-date').innerHTML = pretty.date(halvingTimestamp)
@@ -125,7 +155,7 @@ const components = {
     get.byId('hash_rate').innerText = json.hash_rate.toExponential(3)
     get.byId('totalbc').innerText = pretty.number(json.totalbc / 10e7)
     get.byId('transactions').innerText = pretty.number(json.n_tx)
-    get.byId('nextretarget-eta').innerText = pretty.date(timeNextRetarget)
+    get.byId('nextretarget-eta').innerText = pretty.smartDate(timeNextRetarget)
     get.byId('retarget-next-height').innerText = pretty.number(json.nextretarget)
     get.byId('retarget-blocks').innerText = pretty.number(blocksToRetarget)
     get.byId('retarget-average-time').innerHTML = pretty.number(parseInt(avgTimeBlock))
