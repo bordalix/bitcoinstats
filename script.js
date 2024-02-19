@@ -329,7 +329,26 @@ const timeline = {
   },
 }
 
+const theme = {
+  set: () => {
+    const previous = localStorage.getItem('theme')
+    if (previous) {
+      if (previous === 'dark') document.body.classList.add('dark')
+      return
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.body.classList.add('dark')
+    }
+  },
+  toggle: () => {
+    const toggleTheme = localStorage.getItem('theme') === 'dark' ? 'light' : 'dark'
+    localStorage.setItem('theme', toggleTheme)
+    document.body.classList.toggle('dark')
+  },
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  theme.set()
   const updateComponents = () => {
     for (c of Object.keys(components)) components[c]()
   }

@@ -1,3 +1,7 @@
+body.dark {
+  filter: invert(1);
+}
+
 dl {
   margin-top: 1.5em;
 }
@@ -61,12 +65,6 @@ p.with-icon img {
 span.discrete {
   color: #333;
   font-size: 0.8rem;
-}
-
-@media (prefers-color-scheme: dark) {
-  body {
-    filter: invert(1);
-  }
 }
 
 .modal {
