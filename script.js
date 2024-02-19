@@ -118,8 +118,8 @@ const components = {
     get.byId('last_block').setAttribute('href', `https://mempool.space/block/${hash}`)
   },
   mempool: async () => {
-    const json = await get.info('/charts/mempool-size?timespan=1days&format=json&cors=true')
-    get.byId('mempool').innerText = pretty.number(json.values.pop().y) + ' bytes'
+    const json = await get.mempool('/mempool')
+    get.byId('mempool').innerText = pretty.number(json.vsize) + ' vbytes'
   },
   price: async () => {
     const json = await get.json('https://btcoracle.bordalix.workers.dev')
