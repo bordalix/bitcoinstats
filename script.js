@@ -123,13 +123,14 @@ const components = {
   },
   price: async () => {
     const json = await get.json('https://btcoracle.bordalix.workers.dev')
+    const rate = json.pricefeed ?? json
     const fees = await get.mempool('/v1/fees/recommended')
     fees.fiat = {
-      fastestFee: pretty.number((fees.fastestFee * 140 * json.usd) / 10e7, 2),
-      minimumFee: pretty.number((fees.minimumFee * 140 * json.usd) / 10e7, 2),
+      fastestFee: pretty.number((fees.fastestFee * 140 * rate.usd) / 10e7, 2),
+      minimumFee: pretty.number((fees.minimumFee * 140 * rate.usd) / 10e7, 2),
     }
-    get.byId('market_price_usd').innerText = `$ ${pretty.number(json.usd, 2)}`
-    get.byId('market_price_eur').innerText = `€ ${pretty.number(json.eur, 2)}`
+    get.byId('market_price_usd').innerText = `$ ${pretty.number(rate.usd, 2)}`
+    get.byId('market_price_eur').innerText = `€ ${pretty.number(rate.eur, 2)}`
     get.byId('fees-container').innerText =
       fees.fastestFee === fees.minimumFee
         ? `${fees.fastestFee} sats/vbyte`
