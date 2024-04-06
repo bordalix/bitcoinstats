@@ -85,7 +85,6 @@
       </div>
     </footer>
     <script src="./script.js"></script>
-    <script src="./mempool.js"></script>
     <script>
       let toHalving
       let epochBlock
@@ -115,22 +114,19 @@
       }
 
       const init = async () => {
-        const {
-          bitcoin: { websocket },
-        } = mempoolJS({ hostname: 'mempool.space' })
-
-        const ws = websocket.initClient({
-          options: ['blocks'],
-        })
-
-        ws.addEventListener('message', async ({ data }) => {
+        const ws = new WebSocket('wss://mempool.space/api/v1/ws')
+        ws.onerror = (e) => console.log('socket error', e)
+        ws.onopen = () => ws.send(JSON.stringify({ action: 'want', data: ['blocks'] }))
+        ws.onmessage = async ({ data }) => {
           const res = JSON.parse(data.toString())
+          console.log('res', res)
           if (res.blocks) {
             tipBlock = res.blocks.reduce((prv, cur) => (cur.height > prv.height ? cur : prv))
             epochBlock = await getEpochBlock(tipBlock.height) // block 2016 blocks ago
+            ws.send(JSON.stringify({ 'track-mempool-block': tipBlock.height + 1 }))
             updateDom()
           }
-        })
+        }
       }
 
       document.addEventListener('DOMContentLoaded', () => {
