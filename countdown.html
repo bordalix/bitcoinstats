@@ -31,7 +31,7 @@
     <style>
       #toHalving {
         color: black;
-        font-size: 7rem;
+        font-size: 5rem;
         line-height: 1;
         margin-bottom: 3rem;
       }
@@ -120,8 +120,10 @@
         ws.onmessage = async ({ data }) => {
           const res = JSON.parse(data.toString())
           console.log('res', res)
-          if (res.blocks) {
-            tipBlock = res.blocks.reduce((prv, cur) => (cur.height > prv.height ? cur : prv))
+          if (res.blocks || res.block) {
+            tipBlock = res.blocks
+              ? res.blocks.reduce((prev, curr) => (curr.height > prev.height ? curr : prev))
+              : res.block
             epochBlock = await getEpochBlock(tipBlock.height) // block 2016 blocks ago
             ws.send(JSON.stringify({ 'track-mempool-block': tipBlock.height + 1 }))
             updateDom()
