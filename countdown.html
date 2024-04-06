@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Primary Meta Tags -->
+    <title>Bitcoin stats</title>
+    <meta name="title" content="Bitcoin stats" />
+    <meta name="description" content="Bitcoin stats" />
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://joaobordalo.com/labs/bitcoinstats/" />
+    <meta property="og:title" content="Bitcoin stats" />
+    <meta property="og:description" content="Bitcoin stats" />
+    <meta property="og:image" content="https://joaobordalo.com/labs/bitcoinstats/images/bitcoinstats.png" />
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://joaobordalo.com/labs/bitcoinstats/" />
+    <meta property="twitter:title" content="Bitcoin stats" />
+    <meta property="twitter:description" content="Bitcoin stats" />
+    <meta property="twitter:image" content="https://joaobordalo.com/labs/bitcoinstats/images/bitcoinstats.png" />
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="images/favicon.png" type="image/x-icon" />
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/bulma.min.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <!-- Lightning -->
+    <meta name="lightning" content="bordalix@getalby.com" />
+  </head>
+  <body class="has-background-light">
+    <style>
+      #toHalving {
+        color: black;
+        font-size: 7rem;
+        line-height: 1;
+        margin-bottom: 3rem;
+      }
+      #expectedDate,
+      #countdown {
+        color: black;
+        font-size: 1.5rem;
+        margin-bottom: 3rem;
+      }
+    </style>
+    <section class="section has-text-centered" style="padding-top: 4rem">
+      <div class="container">
+        <p>blocks to halving</p>
+        <p id="toHalving">...</p>
+        <p>expected date</p>
+        <p id="expectedDate">...</p>
+        <p>countdown</p>
+        <p id="countdown">...</p>
+      </div>
+    </section>
+    <footer class="footer has-background-light">
+      <div class="content has-text-centered">
+        <p class="with-icon">
+          <img src="images/nocopyright.svg" alt="no copyright icon" />
+          2024 public domain -
+          <strong>Bitcoin stats</strong> by
+          <a href="https://twitter.com/bordalix">@bordalix</a>
+        </p>
+        <p class="with-icon">
+          <img src="images/bitcoin.svg" alt="bitcoin logo" />
+          bc1qeqldd29lz78rmlk2ns8q3wtwcjczafme4gfxc5
+        </p>
+        <p class="with-icon">
+          <img src="images/github.svg" alt="github logo" />
+          <a href="https://github.com/bordalix/bitcoinstats"> https://github.com/bordalix/bitcoinstats </a>
+        </p>
+        <p class="with-icon">
+          <img src="images/shop.svg" alt="shop icon" />
+          <a
+            href="https://www.google.com/maps/@/data=!3m1!4b1!4m3!11m2!2syL13ALveTaYqYZ-WHX0aLcRxNqRWpw!3e3?shorturl=1">
+            Shops accepting bitcoin in Portugal
+          </a>
+        </p>
+        <p class="with-icon">
+          <img src="images/lightning.svg" alt="lightning logo" />
+          <a href="https://getalby.com/p/bordalix">https://getalby.com/p/bordalix</a>
+        </p>
+        <p style="margin-top: 10px">
+          <button onclick="theme.toggle()">Toggle dark theme</button>
+        </p>
+      </div>
+    </footer>
+    <script src="./script.js"></script>
+    <script src="./mempool.js"></script>
+    <script>
+      let toHalving
+      let epochBlock
+
+      const getEpochBlock = async (tip) => {
+        const hash = await get.mempool(`/block-height/${tip - 2016}`, true)
+        const block = await get.mempool(`/block/${hash}`)
+        return block
+      }
+
+      const updateToHalving = () => {
+        toHalving = 840_000 - tipBlock.height // blocks to halving
+        document.querySelector('#toHalving').textContent = pretty.number(toHalving)
+      }
+
+      const updateClocks = () => {
+        const avgSecsPerBlock = (tipBlock.timestamp - epochBlock.timestamp) / (tipBlock.height - epochBlock.height)
+        const expectedTimestamp = Math.floor(avgSecsPerBlock * toHalving + tipBlock.timestamp)
+        const expectedDate = new Date(expectedTimestamp * 1000)
+        document.querySelector('#expectedDate').textContent = expectedDate.toString().split(/\s\(/)[0]
+        document.querySelector('#countdown').textContent = pretty.timeago(expectedTimestamp - tipBlock.timestamp)
+      }
+
+      const updateDom = async () => {
+        updateToHalving()
+        updateClocks()
+      }
+
+      const init = async () => {
+        const {
+          bitcoin: { websocket },
+        } = mempoolJS({ hostname: 'mempool.space' })
+
+        const ws = websocket.initClient({
+          options: ['blocks'],
+        })
+
+        ws.addEventListener('message', async ({ data }) => {
+          const res = JSON.parse(data.toString())
+          if (res.blocks) {
+            tipBlock = res.blocks.reduce((prv, cur) => (cur.height > prv.height ? cur : prv))
+            epochBlock = await getEpochBlock(tipBlock.height) // block 2016 blocks ago
+            updateDom()
+          }
+        })
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        theme.set()
+        init()
+      })
+    </script>
+  </body>
+</html>

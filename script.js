@@ -348,21 +348,3 @@ const theme = {
     document.body.classList.toggle('dark')
   },
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-  theme.set()
-  const updateComponents = () => {
-    for (c of Object.keys(components)) components[c]()
-  }
-  const runIntervals = () => {
-    for (i of Object.keys(intervals)) intervals[i]()
-  }
-  listeners.modals()
-  updateComponents()
-  setInterval(runIntervals, 1000)
-  // update on the minute
-  setTimeout(function () {
-    updateComponents()
-    setInterval(updateComponents, 60000)
-  }, (59 - new Date().getSeconds()) * 1000)
-})
