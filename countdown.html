@@ -29,27 +29,23 @@
   </head>
   <body class="has-background-light">
     <style>
-      #toHalving {
+      p.info {
         color: black;
-        font-size: 5rem;
-        line-height: 1;
-        margin-bottom: 3rem;
-      }
-      #expectedDate,
-      #countdown {
-        color: black;
-        font-size: 1.5rem;
+        font-size: 1rem;
+        font-weight: 700;
         margin-bottom: 3rem;
       }
     </style>
     <section class="section has-text-centered" style="padding-top: 4rem">
       <div class="container">
-        <p>blocks to halving</p>
-        <p id="toHalving">...</p>
+        <p>to halving</p>
+        <p class="info" id="toHalving">...</p>
+        <p>average per block</p>
+        <p class="info" id="avgSecsPerBlock">...</p>
         <p>expected date</p>
-        <p id="expectedDate">...</p>
+        <p class="info" id="expectedDate">...</p>
         <p>countdown</p>
-        <p id="countdown">...</p>
+        <p class="info" id="countdown">...</p>
       </div>
     </section>
     <footer class="footer has-background-light">
@@ -87,44 +83,50 @@
     <script src="./script.js"></script>
     <script>
       let toHalving
+      let intervalId
       let epochBlock
 
-      const getEpochBlock = async (tip) => {
-        const hash = await get.mempool(`/block-height/${tip - 2016}`, true)
+      const getEpochBlock = async () => {
+        // last difficulty adjustment block was 838655
+        const hash = await get.mempool(`/block-height/838655`, true)
         const block = await get.mempool(`/block/${hash}`)
         return block
       }
 
       const updateToHalving = () => {
         toHalving = 840_000 - tipBlock.height // blocks to halving
-        document.querySelector('#toHalving').textContent = pretty.number(toHalving)
+        document.querySelector('#toHalving').textContent = pretty.number(toHalving) + ' blocks'
       }
 
       const updateClocks = () => {
         const avgSecsPerBlock = (tipBlock.timestamp - epochBlock.timestamp) / (tipBlock.height - epochBlock.height)
         const expectedTimestamp = Math.floor(avgSecsPerBlock * toHalving + tipBlock.timestamp)
         const expectedDate = new Date(expectedTimestamp * 1000)
+        document.querySelector('#avgSecsPerBlock').textContent = `${Math.floor(avgSecsPerBlock)} seconds`
         document.querySelector('#expectedDate').textContent = expectedDate.toString().split(/\s\(/)[0]
-        document.querySelector('#countdown').textContent = pretty.timeago(expectedTimestamp - tipBlock.timestamp)
+        document.querySelector('#countdown').textContent = pretty.timeago(
+          expectedTimestamp - Math.floor(Date.now() / 1000)
+        )
       }
 
       const updateDom = async () => {
         updateToHalving()
         updateClocks()
+        if (intervalId) clearInterval(intervalId)
+        intervalId = setInterval(updateClocks, 1000)
       }
 
       const init = async () => {
+        epochBlock = await getEpochBlock()
         const ws = new WebSocket('wss://mempool.space/api/v1/ws')
         ws.onerror = (e) => console.log('socket error', e)
         ws.onopen = () => ws.send(JSON.stringify({ action: 'want', data: ['blocks'] }))
         ws.onmessage = async ({ data }) => {
           const res = JSON.parse(data.toString())
-          console.log('res', res)
           if (res.blocks || res.block) {
             tipBlock = res.blocks
               ? res.blocks.reduce((prev, curr) => (curr.height > prev.height ? curr : prev))
               : res.block
-            epochBlock = await getEpochBlock(tipBlock.height) // block 2016 blocks ago
             ws.send(JSON.stringify({ 'track-mempool-block': tipBlock.height + 1 }))
             updateDom()
           }
