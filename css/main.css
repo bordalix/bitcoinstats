@@ -43,7 +43,7 @@ progress.progress:not(:last-child) {
 }
 
 .box > :nth-child(2):empty {
-  background: no-repeat center/20% url('../images/rolling_block.gif');
+  background: no-repeat center/30% url('../images/rolling_block.gif');
 }
 
 a {
