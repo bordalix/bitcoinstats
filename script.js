@@ -94,7 +94,7 @@ const components = {
   },
   latest: async () => {
     const _60days = 6 * 24 * 60
-    const halvingBlock = 840_000
+    const halvingBlock = 1_050_000
     const tip = await get.mempool('/blocks/tip/height')
     let hash = await get.mempool(`/block-height/${tip}`, true)
     let json = await get.mempool(`/block/${hash}`)
