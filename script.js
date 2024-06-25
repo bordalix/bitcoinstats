@@ -89,8 +89,8 @@ const intervals = {
 
 const components = {
   blocksize: async () => {
-    const json = await get.info('/q/24hravgblocksize')
-    get.byId('block_size').innerText = json.toFixed(2) + ' MB'
+    // const json = await get.info('/q/24hravgblocksize')
+    // get.byId('block_size').innerText = json.toFixed(2) + ' MB'
   },
   latest: async () => {
     const _60days = 6 * 24 * 60
@@ -153,6 +153,7 @@ const components = {
     const blocksToRetarget = json.nextretarget - json.n_blocks_total
     const avgTimeBlock = (json.timestamp / 1000 - last.timestamp) / blocksSinceRetarget
     const timeNextRetarget = blocksToRetarget * avgTimeBlock * 1000 + Date.now()
+    const blockSize = json.blocks_size / json.n_blocks_mined / 1024 / 1024 // Mega bytes
     get.byId('hash_rate').innerText = json.hash_rate.toExponential(3)
     get.byId('totalbc').innerText = pretty.number(json.totalbc / 10e7)
     get.byId('transactions').innerText = pretty.number(json.n_tx)
@@ -164,6 +165,7 @@ const components = {
     get.byId('retarget-movement').innerHTML = pretty.movement(avgTimeBlock)
     get.byId('difficulty').innerHTML = json.difficulty.toExponential(3)
     get.byId('difficulty-movement').innerHTML = pretty.movement(avgTimeBlock)
+    get.byId('block_size').innerText = blockSize.toFixed(2) + ' MB'
   },
   uptime: intervals.uptime,
 }
