@@ -45,6 +45,18 @@ const pretty = {
     const min = 60
     const hour = 60 * min
     const day = 24 * hour
+    const week = 7 * day
+    const year = 52 * week
+    if (seconds > year) {
+      const num = Math.floor(seconds / year)
+      partial.push(`${num}y`)
+      return pretty.timeago(seconds - num * year, partial)
+    }
+    if (seconds > week) {
+      const num = Math.floor(seconds / week)
+      partial.push(`${num}w`)
+      return pretty.timeago(seconds - num * week, partial)
+    }
     if (seconds > day) {
       const num = Math.floor(seconds / day)
       partial.push(`${num}d`)
