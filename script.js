@@ -157,13 +157,14 @@ const components = {
     }
   },
   stats: async () => {
+    const tip = await get.mempool('/blocks/tip/height')
     const json = await get.info('/stats')
     const last_retarget = json.nextretarget - 2016
     const hash = await get.mempool(`/block-height/${last_retarget}`, true)
     const last = await get.mempool(`/block/${hash}`)
-    const blocksSinceRetarget = json.n_blocks_total - last.height
-    const blocksToRetarget = json.nextretarget - json.n_blocks_total
-    const avgTimeBlock = (json.timestamp / 1000 - last.timestamp) / blocksSinceRetarget
+    const blocksSinceRetarget = tip - last.height
+    const blocksToRetarget = json.nextretarget - tip
+    const avgTimeBlock = (Date.now() / 1000 - last.timestamp) / blocksSinceRetarget
     const timeNextRetarget = blocksToRetarget * avgTimeBlock * 1000 + Date.now()
     const blockSize = json.blocks_size / json.n_blocks_mined / 1024 / 1024 // Mega bytes
     get.byId('hash_rate').innerText = json.hash_rate.toExponential(3)
