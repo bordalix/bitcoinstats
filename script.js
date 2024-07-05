@@ -17,7 +17,7 @@ const get = {
 
 const pretty = {
   date: (timestamp, days = 2) => {
-    const date = new Date(timestamp)
+    const date = new Date(parseInt(timestamp))
     const show = date.toString().split(/\s\(/)[0]
     const diff = date - Date.now()
     const soon = days * 24 * 60 * 60 * 1000
@@ -34,7 +34,7 @@ const pretty = {
     return new Intl.NumberFormat(language, { maximumFractionDigits }).format(num)
   },
   smartDate: (timestamp, days = 1) => {
-    const date = new Date(timestamp)
+    const date = new Date(parseInt(timestamp))
     const show = date.toString().split(/\s\(/)[0]
     const diff = date - Date.now()
     const soon = days * 24 * 60 * 60 * 1000
@@ -127,7 +127,7 @@ const components = {
     get.byId('halving-block').innerText = pretty.number(halvingBlock)
     get.byId('halving-blocks').innerText = pretty.number(blocksToHalving)
     get.byId('halving-date').innerHTML = pretty.date(halvingTimestamp)
-    get.byId('last_block').setAttribute('href', `https://mempool.space/block/${hash}`)
+    get.byId('last_block').setAttribute('href', `https://mempool.space`)
   },
   mempool: async () => {
     const json = await get.mempool('/mempool')
@@ -156,28 +156,40 @@ const components = {
       if (el && fees[id]) el.innerText = fees[id]
     }
   },
+  retarget: async () => {
+    const tipHeight = await get.mempool('/blocks/tip/height')
+    const blocksSinceLastRetarget = tipHeight % 2016
+    const blocksToNextRetarget = 2016 - blocksSinceLastRetarget
+    const nextRetargetBlockHeight = tipHeight + blocksToNextRetarget
+    const lastRetargetBlockHeight = tipHeight - blocksSinceLastRetarget
+
+    const tipBlockHash = await get.mempool(`/block-height/${tipHeight}`, true)
+    const tipBlock = await get.mempool(`/block/${tipBlockHash}`)
+    const lastRetargetBlockHash = await get.mempool(`/block-height/${lastRetargetBlockHeight}`, true)
+    const lastRetargetBlock = await get.mempool(`/block/${lastRetargetBlockHash}`)
+    const averageSecondsPerBlock = (tipBlock.timestamp - lastRetargetBlock.timestamp) / blocksSinceLastRetarget
+    const expectedTimeNextRetarget = Date.now() + blocksToNextRetarget * averageSecondsPerBlock * 1000
+
+    get.byId('nextretarget-eta').innerText = pretty.smartDate(expectedTimeNextRetarget)
+    get.byId('retarget-next-height').innerText = pretty.number(nextRetargetBlockHeight)
+    get.byId('retarget-blocks').innerText = pretty.number(blocksToNextRetarget)
+    get.byId('retarget-average-time').innerHTML = pretty.number(parseInt(averageSecondsPerBlock))
+    get.byId('retarget-date').innerText = pretty.date(expectedTimeNextRetarget)
+    get.byId('retarget-movement').innerHTML = pretty.movement(averageSecondsPerBlock)
+    get.byId('difficulty-movement').innerHTML = pretty.movement(averageSecondsPerBlock)
+  },
+  blocksize: async () => {
+    const unixNow = parseInt(Date.now() / 1000)
+    const { sizes } = await get.mempool('/v1/mining/blocks/sizes-weights/24h')
+  },
   stats: async () => {
-    const tip = await get.mempool('/blocks/tip/height')
     const json = await get.info('/stats')
-    const last_retarget = json.nextretarget - 2016
-    const hash = await get.mempool(`/block-height/${last_retarget}`, true)
-    const last = await get.mempool(`/block/${hash}`)
-    const blocksSinceRetarget = tip - last.height
-    const blocksToRetarget = json.nextretarget - tip
-    const avgTimeBlock = (Date.now() / 1000 - last.timestamp) / blocksSinceRetarget
-    const timeNextRetarget = blocksToRetarget * avgTimeBlock * 1000 + Date.now()
     const blockSize = json.blocks_size / json.n_blocks_mined / 1024 / 1024 // Mega bytes
+
     get.byId('hash_rate').innerText = json.hash_rate.toExponential(3)
     get.byId('totalbc').innerText = pretty.number(json.totalbc / 10e7)
     get.byId('transactions').innerText = pretty.number(json.n_tx)
-    get.byId('nextretarget-eta').innerText = pretty.smartDate(timeNextRetarget)
-    get.byId('retarget-next-height').innerText = pretty.number(json.nextretarget)
-    get.byId('retarget-blocks').innerText = pretty.number(blocksToRetarget)
-    get.byId('retarget-average-time').innerHTML = pretty.number(parseInt(avgTimeBlock))
-    get.byId('retarget-date').innerText = pretty.date(timeNextRetarget)
-    get.byId('retarget-movement').innerHTML = pretty.movement(avgTimeBlock)
     get.byId('difficulty').innerHTML = json.difficulty.toExponential(3)
-    get.byId('difficulty-movement').innerHTML = pretty.movement(avgTimeBlock)
     get.byId('block_size').innerText = blockSize.toFixed(2) + ' MB'
   },
   uptime: intervals.uptime,
