@@ -3,7 +3,6 @@ let lastBlocks
 
 const get = {
   byId: (id) => document.getElementById(id),
-  info: async (url) => await get.json(`https://api.blockchain.info${url}`),
   json: async (url, text = false) => {
     try {
       const res = await fetch(url)
@@ -13,6 +12,11 @@ const get = {
     }
   },
   mempool: async (url, text = false) => await get.json(`https://mempool.space/api${url}`, text),
+  tip: async () => {
+    const tip = await get.mempool('/blocks/tip/height')
+    let hash = await get.mempool(`/block-height/${tip}`, true)
+    tipBlock = await get.mempool(`/block/${hash}`)
+  },
 }
 
 const pretty = {
@@ -100,28 +104,46 @@ const intervals = {
 }
 
 const components = {
+  bitcoinsMined: () => {
+    let coins = 0
+    let reward = 50
+    for (let i = 0; i <= tipBlock.height; i++) {
+      // Halve the reward every 210,000 blocks
+      if (i % 210000 === 0 && i !== 0) reward /= 2
+      coins += reward
+    }
+    get.byId('totalbc').innerText = pretty.number(coins)
+  },
   blocksize: async () => {
-    // const json = await get.info('/q/24hravgblocksize')
-    // get.byId('block_size').innerText = json.toFixed(2) + ' MB'
+    const { sizes } = await get.mempool('/v1/mining/blocks/sizes-weights/24h')
+    const sum = sizes.reduce((prev, curr) => prev + curr.avgSize, 0)
+    const avg = sum / sizes.length / 1024 / 1024 // convert to Mega Bytes
+    get.byId('block_size').innerText = avg.toFixed(2) + ' MB'
+  },
+  difficulty: async () => {
+    const arr = await get.mempool('/v1/mining/difficulty-adjustments/1m')
+    get.byId('difficulty').innerHTML = arr[0][2].toExponential(3)
+  },
+  hashrate: async () => {
+    const { currentHashrate } = await get.mempool('/v1/mining/hashrate/24h')
+    get.byId('hash_rate').innerText = currentHashrate.toExponential(3)
   },
   latest: async () => {
-    const _60days = 6 * 24 * 60
     const halvingBlock = 1_050_000
-    const tip = await get.mempool('/blocks/tip/height')
-    let hash = await get.mempool(`/block-height/${tip}`, true)
-    let json = await get.mempool(`/block/${hash}`)
-    hash = await get.mempool(`/block-height/${json.height - _60days}`, true)
+    const unixNow = parseInt(Date.now() / 1000)
+    const _60days = 60 * 24 * 60 * 60
+    const { hash } = await get.mempool(`/v1/mining/blocks/timestamp/${unixNow - _60days}`)
     const old = await get.mempool(`/block/${hash}`)
-    const avgTimeBlock = (json.timestamp - old.timestamp) / _60days
-    const blocksToHalving = halvingBlock - json.height
-    const halvingTimestamp = blocksToHalving * avgTimeBlock * 1000 + Date.now()
-    tipBlock = json
 
-    lastBlocks = await get.mempool(`/blocks/${tip}`)
-    lastBlocks = lastBlocks?.concat(await get.mempool(`/blocks/${tip - 10}`))
+    const avgTimeBlock = (tipBlock.timestamp - old.timestamp) / (tipBlock.height - old.height)
+    const blocksToHalving = halvingBlock - tipBlock.height
+    const halvingTimestamp = blocksToHalving * avgTimeBlock * 1000 + Date.now()
+
+    lastBlocks = await get.mempool(`/blocks/${tipBlock.height}`)
+    lastBlocks = lastBlocks?.concat(await get.mempool(`/blocks/${tipBlock.height - 15}`))
     timeline.draw(lastBlocks)
 
-    get.byId('n_blocks_total').innerText = pretty.number(json.height)
+    get.byId('n_blocks_total').innerText = pretty.number(tipBlock.height)
     get.byId('halving-average-time').innerText = pretty.number(parseInt(avgTimeBlock))
     get.byId('halving-container').innerText = pretty.smartDate(halvingTimestamp)
     get.byId('halving-block').innerText = pretty.number(halvingBlock)
@@ -178,19 +200,21 @@ const components = {
     get.byId('retarget-movement').innerHTML = pretty.movement(averageSecondsPerBlock)
     get.byId('difficulty-movement').innerHTML = pretty.movement(averageSecondsPerBlock)
   },
-  blocksize: async () => {
+  transactions: async () => {
     const unixNow = parseInt(Date.now() / 1000)
-    const { sizes } = await get.mempool('/v1/mining/blocks/sizes-weights/24h')
-  },
-  stats: async () => {
-    const json = await get.info('/stats')
-    const blockSize = json.blocks_size / json.n_blocks_mined / 1024 / 1024 // Mega bytes
-
-    get.byId('hash_rate').innerText = json.hash_rate.toExponential(3)
-    get.byId('totalbc').innerText = pretty.number(json.totalbc / 10e7)
-    get.byId('transactions').innerText = pretty.number(json.n_tx)
-    get.byId('difficulty').innerHTML = json.difficulty.toExponential(3)
-    get.byId('block_size').innerText = blockSize.toFixed(2) + ' MB'
+    const aDayAgo = unixNow - 24 * 60 * 60
+    const { height } = await get.mempool(`/v1/mining/blocks/timestamp/${aDayAgo}`)
+    const blocks = []
+    let pointer = tipBlock.height
+    while (pointer > height) {
+      const arr = await get.mempool(`/v1/blocks/${pointer}`)
+      for (const info of arr) {
+        if (!blocks.find((b) => b.height === info.height)) blocks.push(info)
+      }
+      pointer = arr[arr.length - 1].height - 1
+    }
+    const dailyTransactions = blocks.filter((b) => b.height >= height).reduce((prev, curr) => prev + curr.tx_count, 0)
+    get.byId('transactions').innerText = pretty.number(dailyTransactions)
   },
   uptime: intervals.uptime,
 }

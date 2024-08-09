@@ -461,8 +461,9 @@
     </footer>
     <script src="./script.js"></script>
     <script>
-      document.addEventListener('DOMContentLoaded', () => {
+      document.addEventListener('DOMContentLoaded', async () => {
         theme.set()
+        await get.tip()
         const updateComponents = () => {
           for (c of Object.keys(components)) components[c]()
         }
