@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="css/bulma.min.css" />
     <link rel="stylesheet" href="css/main.css" />
     <!-- Lightning -->
-    <meta name="lightning" content="bordalix@getalby.com" />
+    <meta name="lightning" content="bordalix@coinos.io" />
   </head>
   <body class="has-background-light">
     <section class="section">
@@ -40,20 +40,20 @@
         ws.addEventListener('message', function incoming({ data }) {
           const res = JSON.parse(data.toString())
           if (res.block) {
-            document.getElementById('result-blocks').textContent =
-              JSON.stringify(res.block, undefined, 2)
+            document.getElementById('result-blocks').textContent = JSON.stringify(res.block, undefined, 2)
           }
           if (res.mempoolInfo) {
-            document.getElementById('result-mempool-info').textContent =
-              JSON.stringify(res.mempoolInfo, undefined, 2)
+            document.getElementById('result-mempool-info').textContent = JSON.stringify(res.mempoolInfo, undefined, 2)
           }
           if (res.transactions) {
-            document.getElementById('result-transactions').textContent =
-              JSON.stringify(res.transactions, undefined, 2)
+            document.getElementById('result-transactions').textContent = JSON.stringify(res.transactions, undefined, 2)
           }
           if (res['mempool-blocks']) {
-            document.getElementById('result-mempool-blocks').textContent =
-              JSON.stringify(res['mempool-blocks'], undefined, 2)
+            document.getElementById('result-mempool-blocks').textContent = JSON.stringify(
+              res['mempool-blocks'],
+              undefined,
+              2
+            )
           }
         })
       }
