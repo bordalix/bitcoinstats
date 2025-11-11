@@ -1,8 +1,15 @@
 let tipBlock
 let lastBlocks
 
+const cache = {}
+
 const get = {
   byId: (id) => document.getElementById(id),
+  cached: async (url, text = false) => {
+    console.log('cached', url, Boolean(cache[url]))
+    cache[url] = cache[url] || (await get.mempool(url, text))
+    return cache[url]
+  },
   json: async (url, text = false) => {
     try {
       const res = await fetch(url)
@@ -11,11 +18,14 @@ const get = {
       return null
     }
   },
-  mempool: async (url, text = false) => await get.json(`https://mempool.space/api${url}`, text),
+  mempool: async (url, text = false) => {
+    console.log('mempool', url)
+    return await get.json(`https://mempool.space/api${url}`, text)
+  },
   tip: async () => {
     const tip = await get.mempool('/blocks/tip/height')
-    let hash = await get.mempool(`/block-height/${tip}`, true)
-    tipBlock = await get.mempool(`/block/${hash}`)
+    let hash = await get.cached(`/block-height/${tip}`, true)
+    tipBlock = await get.cached(`/block/${hash}`)
   },
 }
 
@@ -132,15 +142,15 @@ const components = {
     const halvingBlock = 1_050_000
     const unixNow = parseInt(Date.now() / 1000)
     const _60days = 60 * 24 * 60 * 60
-    const { hash } = await get.mempool(`/v1/mining/blocks/timestamp/${unixNow - _60days}`)
-    const old = await get.mempool(`/block/${hash}`)
+    const { hash } = await get.cached(`/v1/mining/blocks/timestamp/${unixNow - _60days}`)
+    const old = await get.cached(`/block/${hash}`)
 
     const avgTimeBlock = (tipBlock.timestamp - old.timestamp) / (tipBlock.height - old.height)
     const blocksToHalving = halvingBlock - tipBlock.height
     const halvingTimestamp = blocksToHalving * avgTimeBlock * 1000 + Date.now()
 
-    lastBlocks = await get.mempool(`/blocks/${tipBlock.height}`)
-    lastBlocks = lastBlocks?.concat(await get.mempool(`/blocks/${tipBlock.height - 15}`))
+    lastBlocks = await get.cached(`/blocks/${tipBlock.height}`)
+    lastBlocks = lastBlocks?.concat(await get.cached(`/blocks/${tipBlock.height - 15}`))
     timeline.draw(lastBlocks)
 
     get.byId('n_blocks_total').innerText = pretty.number(tipBlock.height)
@@ -185,10 +195,10 @@ const components = {
     const nextRetargetBlockHeight = tipHeight + blocksToNextRetarget
     const lastRetargetBlockHeight = tipHeight - blocksSinceLastRetarget
 
-    const tipBlockHash = await get.mempool(`/block-height/${tipHeight}`, true)
-    const tipBlock = await get.mempool(`/block/${tipBlockHash}`)
-    const lastRetargetBlockHash = await get.mempool(`/block-height/${lastRetargetBlockHeight}`, true)
-    const lastRetargetBlock = await get.mempool(`/block/${lastRetargetBlockHash}`)
+    const tipBlockHash = await get.cached(`/block-height/${tipHeight}`, true)
+    const tipBlock = await get.cached(`/block/${tipBlockHash}`)
+    const lastRetargetBlockHash = await get.cached(`/block-height/${lastRetargetBlockHeight}`, true)
+    const lastRetargetBlock = await get.cached(`/block/${lastRetargetBlockHash}`)
     const averageSecondsPerBlock = (tipBlock.timestamp - lastRetargetBlock.timestamp) / blocksSinceLastRetarget
     const expectedTimeNextRetarget = Date.now() + blocksToNextRetarget * averageSecondsPerBlock * 1000
 
@@ -203,11 +213,11 @@ const components = {
   transactions: async () => {
     const unixNow = parseInt(Date.now() / 1000)
     const aDayAgo = unixNow - 24 * 60 * 60
-    const { height } = await get.mempool(`/v1/mining/blocks/timestamp/${aDayAgo}`)
+    const { height } = await get.cached(`/v1/mining/blocks/timestamp/${aDayAgo}`)
     const blocks = []
     let pointer = tipBlock.height
     while (pointer > height) {
-      const arr = await get.mempool(`/v1/blocks/${pointer}`)
+      const arr = await get.cached(`/v1/blocks/${pointer}`)
       for (const info of arr) {
         if (!blocks.find((b) => b.height === info.height)) blocks.push(info)
       }
