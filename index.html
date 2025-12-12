@@ -479,7 +479,10 @@
         const runIntervals = () => {
           for (i of Object.keys(intervals)) intervals[i]()
         }
-        listeners.modals()
+        const startListeners = () => {
+          for (l of Object.keys(listeners)) listeners[l]()
+        }
+        startListeners()
         updateComponents()
         setInterval(runIntervals, 1000)
         // update on the minute
